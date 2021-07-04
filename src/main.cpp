@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
 
     // Loop until 'q' is pressed
     char key = ' ';
-    while (key != 'q') {
+    while (true) {
 
         if (zed.grab(runtime_parameters) == ERROR_CODE::SUCCESS) {
 
@@ -108,6 +108,7 @@ int main(int argc, char **argv) {
             depth_image_ocv_gpu.download(depth_image_ocv);
             cv::imshow("Depth", depth_image_ocv);
             key = cv::waitKey(1);
+            if (key == 'q') {break;}
             // FPS counter 
             frame_counter++;
             final_time = time(NULL);
