@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
 
     // Set configuration parameters
     InitParameters init_params;
-    init_params.camera_resolution = RESOLUTION::WVGA;
+    init_params.camera_resolution = RESOLUTION::VGA;
     init_params.depth_mode = DEPTH_MODE::ULTRA;
     init_params.coordinate_units = UNIT::METER;
     init_params.camera_fps = 100;
@@ -83,8 +83,6 @@ int main(int argc, char **argv) {
     // Only the headers and pointer to the sl::Mat are copied, not the data itself
     Mat image_zed(new_width, new_height, MAT_TYPE::U8_C4);
     cv::Mat image_ocv = slMat2cvMat(image_zed);
-
-    std::cout << "Using CUDA" << std::endl;
     Mat depth_image_zed_gpu(new_width, new_height, MAT_TYPE::U8_C4, sl::MEM::GPU); // alloc sl::Mat to store GPU depth image
     cv::cuda::GpuMat depth_image_ocv_gpu = slMat2cvMatGPU(depth_image_zed_gpu); // create an opencv GPU reference of the sl::Mat
     cv::Mat depth_image_ocv; // cpu opencv mat for display purposes
