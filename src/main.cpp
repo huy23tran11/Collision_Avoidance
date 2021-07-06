@@ -80,10 +80,10 @@ int main(int argc, char **argv) {
 
     // Set configuration parameters
     InitParameters init_params;
-    init_params.camera_resolution = RESOLUTION::VGA;
+    init_params.camera_resolution = RESOLUTION::HD720;
     init_params.depth_mode = DEPTH_MODE::PERFORMANCE;
     init_params.coordinate_units = UNIT::METER;
-    init_params.camera_fps = 100;
+    init_params.camera_fps = 60;
     if (argc > 1) init_params.input.setFromSVOFile(argv[1]);
 
     // Open the camera
@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
 
     // Set runtime parameters after opening the camera
     RuntimeParameters runtime_parameters;
-    runtime_parameters.sensing_mode = SENSING_MODE::STANDARD;
+    runtime_parameters.sensing_mode = SENSING_MODE::FILL;
 
     // Prepare new image size to retrieve half-resolution images
     Resolution image_size = zed.getCameraInformation().camera_resolution;
@@ -120,10 +120,10 @@ int main(int argc, char **argv) {
     char key = ' ';
     while (true) {
         if (zed.grab(runtime_parameters) == ERROR_CODE::SUCCESS) {
-            zed.retrieveImage(image_zed, VIEW::LEFT, MEM::CPU, new_image_size);
+            zed.retrieveImage(image_zed, VIEW::LEFT, MEM::GPU, new_image_size);
             // retrieve GPU -> the ocv reference is therefore updated
 
-            zed.retrieveImage(depth_image_zed_gpu, VIEW::DEPTH, MEM::GPU, new_image_size);
+            zed.retrieveImage(depth_image_zed_gpu, VIEW::DEPTH, MEM::CPU, new_image_size);
             // Retrieve the RGBA point cloud in half-resolution
             // zed.retrieveMeasure(point_cloud, MEASURE::XYZRGBA, MEM::CPU, new_image_size);
             // Display image and depth using cv:Mat which share sl:Mat data
@@ -156,9 +156,11 @@ int main(int argc, char **argv) {
                     cv::rectangle( image_ocv, boundRect[i].tl() - safe_zone, boundRect[i].br() + safe_zone, red, 2 );
                 }
             }
-            // cv::imshow("Depth", depth_image_ocv);
+            cv::imshow("Depth", depth_image_ocv);
             cv::imshow("Real Img", image_ocv);
             cv::imshow("Canny", img_canny);
+            cv::imshow("Binary", img_binary);
+
             // FPS counter:
             frame_counter++;
             final_time = time(NULL);
