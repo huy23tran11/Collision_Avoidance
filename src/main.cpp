@@ -39,10 +39,26 @@ using namespace sl;
 cv::Mat slMat2cvMat(Mat& input);
 cv::cuda::GpuMat slMat2cvMatGPU(Mat& input);
 
-
 void saveGrayScaleImage(Camera& zed, std::string filename);
+static void empty( int, void* );
 
 int main(int argc, char **argv) {
+    // Trackbars for Canny Edge Detection
+    int threshold1;
+    int threshold2;
+    cv::namedWindow("Parameters", cv::WINDOW_AUTOSIZE); // Create Window
+    cv::createTrackbar( "Threshold1", "Parameters", &threshold2, 255, empty);
+    cv::createTrackbar( "Threshold2", "Parameters", &threshold2, 255, empty);
+    
+    // imtermediate img
+    cv::Mat img_blur;
+    cv::Mat img_canny;
+    cv::Mat img_binary;
+    cv::Mat img_dil;
+    cv::Mat approx;
+    vector<vector<cv::Point>> contours;
+    vector<cv::Vec4i> hierarchy;
+
     int count_save = 0;
     // Create a ZED camera object
     Camera zed;
@@ -54,7 +70,7 @@ int main(int argc, char **argv) {
     // Set configuration parameters
     InitParameters init_params;
     init_params.camera_resolution = RESOLUTION::VGA;
-    init_params.depth_mode = DEPTH_MODE::ULTRA;
+    init_params.depth_mode = DEPTH_MODE::PERFORMANCE;
     init_params.coordinate_units = UNIT::METER;
     init_params.camera_fps = 100;
     if (argc > 1) init_params.input.setFromSVOFile(argv[1]);
@@ -87,37 +103,67 @@ int main(int argc, char **argv) {
     cv::cuda::GpuMat depth_image_ocv_gpu = slMat2cvMatGPU(depth_image_zed_gpu); // create an opencv GPU reference of the sl::Mat
     cv::Mat depth_image_ocv; // cpu opencv mat for display purposes
     Mat point_cloud;
-
+    Mat confidence_map; // confidence filtering
+    cv::Mat confidence_map_ocv = slMat2cvMat(confidence_map);
     // Loop until 'q' is pressed
     char key = ' ';
     while (true) {
-
         if (zed.grab(runtime_parameters) == ERROR_CODE::SUCCESS) {
-
-            // Retrieve the left image, depth image in half-resolution
             zed.retrieveImage(image_zed, VIEW::LEFT, MEM::CPU, new_image_size);
             // retrieve GPU -> the ocv reference is therefore updated
+
             zed.retrieveImage(depth_image_zed_gpu, VIEW::DEPTH, MEM::GPU, new_image_size);
             // Retrieve the RGBA point cloud in half-resolution
-            // To learn how to manipulate and display point clouds, see Depth Sensing sample
-            zed.retrieveMeasure(point_cloud, MEASURE::XYZRGBA, MEM::CPU, new_image_size);
-
+            // zed.retrieveMeasure(point_cloud, MEASURE::XYZRGBA, MEM::CPU, new_image_size);
             // Display image and depth using cv:Mat which share sl:Mat data
-            //cv::imshow("Image", image_ocv);
+            // cv::imshow("Image", image_ocv);
             // download the Ocv GPU data from Device to Host to be displayed
+
+            //confidence values :
+            //zed.retrieveMeasure(confidence_map, MEASURE::CONFIDENCE, MEM::GPU, new_image_size);
+            //cv::imshow("Confidence Filtering", confidence_map_ocv);
+
+            // Edge Detection:
             depth_image_ocv_gpu.download(depth_image_ocv);
+            // cv::GaussianBlur(depth_image_ocv, img_blur, cv::Size(5, 5), 1);
+            cv::threshold(depth_image_ocv, img_binary, 100, 255, cv::THRESH_BINARY);
+            // cv::Canny(img_blur, img_canny, threshold1, threshold2);
+            cv::Canny(img_binary, img_canny, threshold1, threshold2);
+
+            // Draw contour and box:
+            cv::findContours(img_canny, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+            int drawed_contours_count = 0;
+            int contour_area_threshold = 80;
+            double safe_zone_scaling_factor = 1.2;
+            vector<cv::Rect> boundRect(contours.size());
+            for(int i = 0; i < contours.size(); i++) {
+                int area = cv::contourArea(contours.at(i));
+                if (area > contour_area_threshold ) {
+                    drawed_contours_count++;
+                    cv::drawContours(depth_image_ocv, contours, i, (255, 0, 255), 2);
+                    double peri = cv::arcLength(contours.at(i), true);
+                    cv::approxPolyDP(contours.at(i), approx, 0.02 * peri, true);
+                    boundRect[i] = cv::boundingRect(approx);
+                    cv::rectangle( depth_image_ocv, boundRect[i].tl() / safe_zone_scaling_factor, boundRect[i].br() * safe_zone_scaling_factor, (0, 0, 255), 2 );
+                }
+            }
             cv::imshow("Depth", depth_image_ocv);
-            key = cv::waitKey(1);
-            if (key == 'q') {break;}
-            // FPS counter 
+            cv::imshow("Real Img", image_ocv);
+            // cv::imshow("Canny", img_canny);
+            // FPS counter:
             frame_counter++;
             final_time = time(NULL);
             if(final_time - initial_time > 0) {
                 cout << "FPS: " << frame_counter / (final_time - initial_time) <<endl;
+                cout << "Obstacle count: " << drawed_contours_count << endl;
+                cout << endl;
+                drawed_contours_count = 0;
                 frame_counter = 0;
                 initial_time = final_time;
             }
     }
+    key = cv::waitKey(1);
+    if (key == 'q') {break;}
 }
 
     // sl::Mat GPU memory needs to be free before the zed
@@ -172,4 +218,9 @@ void saveGrayScaleImage(Camera& zed, std::string filename) {
         std::cout << "Gray Scale image has been save under " << filename << std::endl;
     else
         std::cout << "Failed to save image... Please check that you have permissions to write at this location (" << filename << "). Re-run the sample with administrator rights under windows" << std::endl;
+}
+
+//Function that do nothing when trackbars change
+static void empty( int, void* ){
+
 }
