@@ -46,9 +46,11 @@ int main(int argc, char **argv) {
     // Trackbars for Canny Edge Detection
     int threshold1;
     int threshold2;
+    int contour_area_threshold = 80;
     cv::namedWindow("Parameters", cv::WINDOW_AUTOSIZE); // Create Window
     cv::createTrackbar( "Threshold1", "Parameters", &threshold2, 255, empty);
     cv::createTrackbar( "Threshold2", "Parameters", &threshold2, 255, empty);
+    cv::createTrackbar( "Area", "Parameters", &contour_area_threshold, 255, empty);
     
     // imtermediate img
     cv::Mat img_blur;
@@ -58,6 +60,10 @@ int main(int argc, char **argv) {
     cv::Mat approx;
     vector<vector<cv::Point>> contours;
     vector<cv::Vec4i> hierarchy;
+
+    // color
+    cv::Scalar red = cv::Scalar(0, 0, 256);
+    cv::Scalar blue = cv::Scalar(256, 0, 0);
 
     int count_save = 0;
     // Create a ZED camera object
@@ -133,23 +139,22 @@ int main(int argc, char **argv) {
             // Draw contour and box:
             cv::findContours(img_canny, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
             int drawed_contours_count = 0;
-            int contour_area_threshold = 80;
             double safe_zone_scaling_factor = 1.2;
             vector<cv::Rect> boundRect(contours.size());
             for(int i = 0; i < contours.size(); i++) {
                 int area = cv::contourArea(contours.at(i));
                 if (area > contour_area_threshold ) {
                     drawed_contours_count++;
-                    cv::drawContours(depth_image_ocv, contours, i, (255, 0, 255), 2);
+                    cv::drawContours(image_ocv, contours, i, blue, 2);
                     double peri = cv::arcLength(contours.at(i), true);
                     cv::approxPolyDP(contours.at(i), approx, 0.02 * peri, true);
                     boundRect[i] = cv::boundingRect(approx);
-                    cv::rectangle( depth_image_ocv, boundRect[i].tl() / safe_zone_scaling_factor, boundRect[i].br() * safe_zone_scaling_factor, (0, 0, 255), 2 );
+                    cv::rectangle( image_ocv, boundRect[i].tl() / safe_zone_scaling_factor, boundRect[i].br() * safe_zone_scaling_factor, red, 2 );
                 }
             }
-            cv::imshow("Depth", depth_image_ocv);
+            // cv::imshow("Depth", depth_image_ocv);
             cv::imshow("Real Img", image_ocv);
-            // cv::imshow("Canny", img_canny);
+            cv::imshow("Canny", img_canny);
             // FPS counter:
             frame_counter++;
             final_time = time(NULL);
