@@ -65,6 +65,11 @@ int main(int argc, char **argv) {
     cv::Scalar red = cv::Scalar(0, 0, 256);
     cv::Scalar blue = cv::Scalar(256, 0, 0);
 
+    //safe zone for flighting
+    cv::Point safe_zone;
+    safe_zone.x = 10;
+    safe_zone.y = 10;
+
     int count_save = 0;
     // Create a ZED camera object
     Camera zed;
@@ -139,7 +144,6 @@ int main(int argc, char **argv) {
             // Draw contour and box:
             cv::findContours(img_canny, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
             int drawed_contours_count = 0;
-            double safe_zone_scaling_factor = 1.2;
             vector<cv::Rect> boundRect(contours.size());
             for(int i = 0; i < contours.size(); i++) {
                 int area = cv::contourArea(contours.at(i));
@@ -149,7 +153,7 @@ int main(int argc, char **argv) {
                     double peri = cv::arcLength(contours.at(i), true);
                     cv::approxPolyDP(contours.at(i), approx, 0.02 * peri, true);
                     boundRect[i] = cv::boundingRect(approx);
-                    cv::rectangle( image_ocv, boundRect[i].tl() / safe_zone_scaling_factor, boundRect[i].br() * safe_zone_scaling_factor, red, 2 );
+                    cv::rectangle( image_ocv, boundRect[i].tl() - safe_zone, boundRect[i].br() + safe_zone, red, 2 );
                 }
             }
             // cv::imshow("Depth", depth_image_ocv);
