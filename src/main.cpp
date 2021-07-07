@@ -42,15 +42,6 @@ void saveGrayScaleImage(Camera& zed, std::string filename);
 static void empty( int, void* );
 
 int main(int argc, char **argv) {
-    // Trackbars for Canny Edge Detection
-    int threshold1;
-    int threshold2;
-    int contour_area_threshold = 80;
-    cv::namedWindow("Parameters", cv::WINDOW_AUTOSIZE); // Create Window
-    cv::createTrackbar( "Threshold1", "Parameters", &threshold2, 255, empty);
-    cv::createTrackbar( "Threshold2", "Parameters", &threshold2, 255, empty);
-    cv::createTrackbar( "Area", "Parameters", &contour_area_threshold, 255, empty);
-    
     // imtermediate img
     cv::Mat img_blur;
     cv::Mat img_canny;
@@ -62,7 +53,7 @@ int main(int argc, char **argv) {
     vector<vector<cv::Point>> contours;
     vector<cv::Vec4i> hierarchy;
     //setting up template for opening space
-    cv::Mat temp(80, 50, CV_8U, cv::Scalar(0, 0, 0));
+    cv::Mat temp(50, 80, CV_8U, cv::Scalar(0, 0, 0));
     double min_val, max_val;
     cv:: Point min_loc, max_loc;
     // color
@@ -127,6 +118,12 @@ int main(int argc, char **argv) {
     cv::Mat img_binary_combined = black_frame.clone();
     cv::Point top_left;
     cv::Point bottom_right;
+    cv::Point center_rect_tf;
+    center_rect_tf.x = (336 / 2) - (80 / 2);
+    center_rect_tf.y = (188 / 2) - (50 / 2);
+    cv::Point region_rect_tf;
+    region_rect_tf.x = (336 / 2) - (84 / 2);
+    region_rect_tf.y = (188 / 2) - (50 / 2);
     int fps;
     while (true) {
         if (zed.grab(runtime_parameters) == ERROR_CODE::SUCCESS) {
@@ -142,24 +139,34 @@ int main(int argc, char **argv) {
             // cv::Canny(img_blur, img_canny, threshold1, threshold2);
             // cv::Canny(img_binary, img_canny, threshold1, threshold2);
             // find matching template
-            frame_counter_for_space++;
             cv::Mat gray;
             cv::cvtColor(img_binary, gray, cv::COLOR_BGR2GRAY);
+            cv::Mat cropped_center = img_binary_combined(cv::Rect(center_rect_tf.x, center_rect_tf.y, 80, 50));
+            frame_counter_for_space++;
             if(frame_counter_for_space < (fps / 10)) {
                 cv::bitwise_or(img_binary_combined, gray, img_binary_combined);
             }
             else {
                 frame_counter_for_space = 0;
-                cv::matchTemplate(img_binary_combined, temp, img_result_templ_matching, cv::TM_SQDIFF);
-
-                // blank the img for another comnination of img.
-                cv::bitwise_and(img_binary_combined, black_frame, img_binary_combined);
-                cv::minMaxLoc(img_result_templ_matching, &min_val, &max_val, &min_loc, &max_loc);
-                top_left = min_loc;
-                bottom_right = top_left + safe_zone;
-            }
+                cv::matchTemplate(cropped_center, temp, img_result_templ_matching, cv::TM_SQDIFF);
+                if(cv::countNonZero(img_result_templ_matching) < 1){
+                    // cv::rectangle(img_binary, cv::Rect(center_rect_tf.x, center_rect_tf.y, 80, 50), blue, 2);
+                    cv::minMaxLoc(img_result_templ_matching, &min_val, &max_val, &min_loc, &max_loc);
+                    top_left = center_rect_tf + min_loc;
+                    bottom_right = top_left + safe_zone;
+                    cv::rectangle(img_binary, top_left, bottom_right, blue, 2);
+                }
+                else {
+                        cv::matchTemplate(gray, temp, img_result_templ_matching, cv::TM_SQDIFF);
+                        cv::minMaxLoc(img_result_templ_matching, &min_val, &max_val, &min_loc, &max_loc);
+                        top_left = min_loc;
+                        bottom_right = top_left + safe_zone;
+                    }
+                    // cv::matchTemplate(img_binary_combined, temp, img_result_templ_matching, cv::TM_SQDIFF);
+                    // blank the img for another comnination of img.
+                    cv::bitwise_and(img_binary_combined, black_frame, img_binary_combined);
+                }
             cv::rectangle(img_binary, top_left, bottom_right, red, 2);
-            
             cv::imshow("Depth", img_binary);
             // img_binary_combined.empty();
             // cv::imshow("Real Img", img_binary_combined);
