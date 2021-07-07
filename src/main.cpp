@@ -22,16 +22,15 @@
  ** This sample demonstrates how to use the ZED SDK with OpenCV.                              **
  ** Depth and images are captured with the ZED SDK, converted to OpenCV format and displayed. **
  ***********************************************************************************************/
+#include <iostream>
+// time for fps
+#include <time.h>
  // ZED includes
 #include <sl/Camera.hpp>
-
 // OpenCV includes
 #include <opencv2/opencv.hpp>
 // OpenCV dep
 #include <opencv2/cvconfig.h>
-// Sample includes
-#include <time.h>
-#include <iostream>
 
 using namespace std;
 using namespace sl;
@@ -58,17 +57,22 @@ int main(int argc, char **argv) {
     cv::Mat img_binary;
     cv::Mat img_dil;
     cv::Mat approx;
+    cv::Mat image_zed_gray_scale;
+    cv::Mat img_result_templ_matching;
     vector<vector<cv::Point>> contours;
     vector<cv::Vec4i> hierarchy;
-
+    //setting up template for opening space
+    cv::Mat temp(80, 50, CV_8U, cv::Scalar(0, 0, 0));
+    double min_val, max_val;
+    cv:: Point min_loc, max_loc;
     // color
     cv::Scalar red = cv::Scalar(0, 0, 256);
     cv::Scalar blue = cv::Scalar(256, 0, 0);
 
     //safe zone for flighting
     cv::Point safe_zone;
-    safe_zone.x = 10;
-    safe_zone.y = 10;
+    safe_zone.x = 80;
+    safe_zone.y = 50;
 
     int count_save = 0;
     // Create a ZED camera object
@@ -80,10 +84,10 @@ int main(int argc, char **argv) {
 
     // Set configuration parameters
     InitParameters init_params;
-    init_params.camera_resolution = RESOLUTION::HD720;
+    init_params.camera_resolution = RESOLUTION::VGA;
     init_params.depth_mode = DEPTH_MODE::PERFORMANCE;
     init_params.coordinate_units = UNIT::METER;
-    init_params.camera_fps = 60;
+    init_params.camera_fps = 100;
     if (argc > 1) init_params.input.setFromSVOFile(argv[1]);
 
     // Open the camera
@@ -97,7 +101,7 @@ int main(int argc, char **argv) {
 
     // Set runtime parameters after opening the camera
     RuntimeParameters runtime_parameters;
-    runtime_parameters.sensing_mode = SENSING_MODE::FILL;
+    runtime_parameters.sensing_mode = SENSING_MODE::STANDARD;
 
     // Prepare new image size to retrieve half-resolution images
     Resolution image_size = zed.getCameraInformation().camera_resolution;
@@ -118,57 +122,60 @@ int main(int argc, char **argv) {
     cv::Mat confidence_map_ocv = slMat2cvMat(confidence_map);
     // Loop until 'q' is pressed
     char key = ' ';
+    int frame_counter_for_space = 0;
+    cv::Mat black_frame(188, 336, CV_8U, cv::Scalar(0, 0, 0));
+    cv::Mat img_binary_combined = black_frame.clone();
+    cv::Point top_left;
+    cv::Point bottom_right;
+    int fps;
     while (true) {
         if (zed.grab(runtime_parameters) == ERROR_CODE::SUCCESS) {
-            zed.retrieveImage(image_zed, VIEW::LEFT, MEM::GPU, new_image_size);
-            // retrieve GPU -> the ocv reference is therefore updated
+            zed.retrieveImage(image_zed, VIEW::LEFT, MEM::CPU, new_image_size);
+            cv::cvtColor(image_ocv, image_zed_gray_scale, cv::COLOR_BGR2GRAY);
 
-            zed.retrieveImage(depth_image_zed_gpu, VIEW::DEPTH, MEM::CPU, new_image_size);
-            // Retrieve the RGBA point cloud in half-resolution
-            // zed.retrieveMeasure(point_cloud, MEASURE::XYZRGBA, MEM::CPU, new_image_size);
-            // Display image and depth using cv:Mat which share sl:Mat data
-            // cv::imshow("Image", image_ocv);
-            // download the Ocv GPU data from Device to Host to be displayed
-
-            //confidence values :
-            //zed.retrieveMeasure(confidence_map, MEASURE::CONFIDENCE, MEM::GPU, new_image_size);
-            //cv::imshow("Confidence Filtering", confidence_map_ocv);
+            zed.retrieveImage(depth_image_zed_gpu, VIEW::DEPTH, MEM::GPU, new_image_size);
 
             // Edge Detection:
             depth_image_ocv_gpu.download(depth_image_ocv);
-            // cv::GaussianBlur(depth_image_ocv, img_blur, cv::Size(5, 5), 1);
+            // cv::GaussianBlur(image_zed_gray_scale, img_blur, cv::Size(5, 5), 1);
             cv::threshold(depth_image_ocv, img_binary, 100, 255, cv::THRESH_BINARY);
             // cv::Canny(img_blur, img_canny, threshold1, threshold2);
-            cv::Canny(img_binary, img_canny, threshold1, threshold2);
-
-            // Draw contour and box:
-            cv::findContours(img_canny, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-            int drawed_contours_count = 0;
-            vector<cv::Rect> boundRect(contours.size());
-            for(int i = 0; i < contours.size(); i++) {
-                int area = cv::contourArea(contours.at(i));
-                if (area > contour_area_threshold ) {
-                    drawed_contours_count++;
-                    cv::drawContours(image_ocv, contours, i, blue, 2);
-                    double peri = cv::arcLength(contours.at(i), true);
-                    cv::approxPolyDP(contours.at(i), approx, 0.02 * peri, true);
-                    boundRect[i] = cv::boundingRect(approx);
-                    cv::rectangle( image_ocv, boundRect[i].tl() - safe_zone, boundRect[i].br() + safe_zone, red, 2 );
-                }
+            // cv::Canny(img_binary, img_canny, threshold1, threshold2);
+            // find matching template
+            frame_counter_for_space++;
+            cv::Mat gray;
+            cv::cvtColor(img_binary, gray, cv::COLOR_BGR2GRAY);
+            if(frame_counter_for_space < (fps / 10)) {
+                cv::bitwise_or(img_binary_combined, gray, img_binary_combined);
             }
-            cv::imshow("Depth", depth_image_ocv);
-            cv::imshow("Real Img", image_ocv);
-            cv::imshow("Canny", img_canny);
-            cv::imshow("Binary", img_binary);
+            else {
+                frame_counter_for_space = 0;
+                cv::matchTemplate(img_binary_combined, temp, img_result_templ_matching, cv::TM_SQDIFF);
+
+                // blank the img for another comnination of img.
+                cv::bitwise_and(img_binary_combined, black_frame, img_binary_combined);
+                cv::minMaxLoc(img_result_templ_matching, &min_val, &max_val, &min_loc, &max_loc);
+                top_left = min_loc;
+                bottom_right = top_left + safe_zone;
+            }
+            cv::rectangle(img_binary, top_left, bottom_right, red, 2);
+            
+            cv::imshow("Depth", img_binary);
+            // img_binary_combined.empty();
+            // cv::imshow("Real Img", img_binary_combined);
+            // cv::imshow("Canny", img_canny);
+            // cv::imshow("Binary", img_binary);
 
             // FPS counter:
             frame_counter++;
             final_time = time(NULL);
             if(final_time - initial_time > 0) {
-                cout << "FPS: " << frame_counter / (final_time - initial_time) <<endl;
-                cout << "Obstacle count: " << drawed_contours_count << endl;
+                fps = frame_counter / (final_time - initial_time);
+                cout << "FPS: " << fps <<endl;
+                // cout << img_binary.size << endl;
+                // cout << "Obstacle count: " << drawed_contours_count << endl;
                 cout << endl;
-                drawed_contours_count = 0;
+                // drawed_contours_count = 0;
                 frame_counter = 0;
                 initial_time = final_time;
             }
