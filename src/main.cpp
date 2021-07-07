@@ -44,26 +44,39 @@ static void empty( int, void* );
 int main(int argc, char **argv) {
     // imtermediate img
     cv::Mat img_blur;
-    cv::Mat img_canny;
     cv::Mat img_binary;
-    cv::Mat img_dil;
-    cv::Mat approx;
     cv::Mat image_zed_gray_scale;
     cv::Mat img_result_templ_matching;
-    vector<vector<cv::Point>> contours;
-    vector<cv::Vec4i> hierarchy;
+
     //setting up template for opening space
-    cv::Mat temp(50, 80, CV_8U, cv::Scalar(0, 0, 0));
+    int templ_w = 80;
+    int templ_h = 50;
+    cv::Mat templ(templ_h, templ_w, CV_8U, cv::Scalar(0, 0, 0));
     double min_val, max_val;
     cv:: Point min_loc, max_loc;
+    int frame_counter_for_space = 0;
+    cv::Mat black_frame(188, 336, CV_8U, cv::Scalar(0, 0, 0));
+    cv::Mat img_binary_combined = black_frame.clone();
+    cv::Point top_left;
+    cv::Point bottom_right;
+    cv::Point center_rect_tf;
+    int frame_w = 336;
+    int frame_h = 188;
+    center_rect_tf.x = (frame_w / 2) - (templ_w / 2);
+    center_rect_tf.y = (frame_h / 2) - (templ_h / 2);
+    // cv::Point region_rect_tf;
+    // region_rect_tf.x = (frame_w / 2) - (84 / 2);
+    // region_rect_tf.y = (frame_h / 2) - (50 / 2);
+    int fps;
+
     // color
     cv::Scalar red = cv::Scalar(0, 0, 256);
     cv::Scalar blue = cv::Scalar(256, 0, 0);
 
-    //safe zone for flighting
-    cv::Point safe_zone;
-    safe_zone.x = 80;
-    safe_zone.y = 50;
+    //for finding topleft templ point from center
+    cv::Point templ_top_left_adjustment_from_center;
+    templ_top_left_adjustment_from_center.x = 80;
+    templ_top_left_adjustment_from_center.y = 50;
 
     int count_save = 0;
     // Create a ZED camera object
@@ -92,7 +105,7 @@ int main(int argc, char **argv) {
 
     // Set runtime parameters after opening the camera
     RuntimeParameters runtime_parameters;
-    runtime_parameters.sensing_mode = SENSING_MODE::STANDARD;
+    runtime_parameters.sensing_mode = SENSING_MODE::FILL;
 
     // Prepare new image size to retrieve half-resolution images
     Resolution image_size = zed.getCameraInformation().camera_resolution;
@@ -113,18 +126,6 @@ int main(int argc, char **argv) {
     cv::Mat confidence_map_ocv = slMat2cvMat(confidence_map);
     // Loop until 'q' is pressed
     char key = ' ';
-    int frame_counter_for_space = 0;
-    cv::Mat black_frame(188, 336, CV_8U, cv::Scalar(0, 0, 0));
-    cv::Mat img_binary_combined = black_frame.clone();
-    cv::Point top_left;
-    cv::Point bottom_right;
-    cv::Point center_rect_tf;
-    center_rect_tf.x = (336 / 2) - (80 / 2);
-    center_rect_tf.y = (188 / 2) - (50 / 2);
-    cv::Point region_rect_tf;
-    region_rect_tf.x = (336 / 2) - (84 / 2);
-    region_rect_tf.y = (188 / 2) - (50 / 2);
-    int fps;
     while (true) {
         if (zed.grab(runtime_parameters) == ERROR_CODE::SUCCESS) {
             zed.retrieveImage(image_zed, VIEW::LEFT, MEM::CPU, new_image_size);
@@ -143,24 +144,24 @@ int main(int argc, char **argv) {
             cv::cvtColor(img_binary, gray, cv::COLOR_BGR2GRAY);
             cv::Mat cropped_center = img_binary_combined(cv::Rect(center_rect_tf.x, center_rect_tf.y, 80, 50));
             frame_counter_for_space++;
-            if(frame_counter_for_space < (fps / 10)) {
+            if(frame_counter_for_space < (fps / 10)) { //
                 cv::bitwise_or(img_binary_combined, gray, img_binary_combined);
             }
             else {
                 frame_counter_for_space = 0;
-                cv::matchTemplate(cropped_center, temp, img_result_templ_matching, cv::TM_SQDIFF);
+                cv::matchTemplate(cropped_center, templ, img_result_templ_matching, cv::TM_SQDIFF);
                 if(cv::countNonZero(img_result_templ_matching) < 1){
                     // cv::rectangle(img_binary, cv::Rect(center_rect_tf.x, center_rect_tf.y, 80, 50), blue, 2);
                     cv::minMaxLoc(img_result_templ_matching, &min_val, &max_val, &min_loc, &max_loc);
                     top_left = center_rect_tf + min_loc;
-                    bottom_right = top_left + safe_zone;
+                    bottom_right = top_left + templ_top_left_adjustment_from_center;
                     cv::rectangle(img_binary, top_left, bottom_right, blue, 2);
                 }
                 else {
-                        cv::matchTemplate(gray, temp, img_result_templ_matching, cv::TM_SQDIFF);
+                        cv::matchTemplate(gray, templ, img_result_templ_matching, cv::TM_SQDIFF);
                         cv::minMaxLoc(img_result_templ_matching, &min_val, &max_val, &min_loc, &max_loc);
                         top_left = min_loc;
-                        bottom_right = top_left + safe_zone;
+                        bottom_right = top_left + templ_top_left_adjustment_from_center;
                     }
                     // cv::matchTemplate(img_binary_combined, temp, img_result_templ_matching, cv::TM_SQDIFF);
                     // blank the img for another comnination of img.
