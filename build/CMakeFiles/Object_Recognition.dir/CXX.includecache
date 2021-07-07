@@ -7,15 +7,15 @@
 #IncludeRegexTransform: 
 
 /home/nguyen/Visual-Studio-Workspace/Collision_Avoidance/src/main.cpp
+iostream
+-
+time.h
+-
 sl/Camera.hpp
 -
 opencv2/opencv.hpp
 -
 opencv2/cvconfig.h
--
-time.h
--
-iostream
 -
 
 /usr/local/cuda/include/builtin_types.h
