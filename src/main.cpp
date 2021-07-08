@@ -65,6 +65,7 @@ cv::Mat img_binary_formatted;
 cv::Mat img_binary;
 cv::Point frame_center;
 cv::Point center_frame_tf;
+cv::Mat image_ocv_copy;
 
 // color
 cv::Scalar red = cv::Scalar(0, 0, 256);
@@ -150,7 +151,8 @@ int main(int argc, char **argv) {
     char key = ' ';
     while (true) {
         if (zed.grab(runtime_parameters) == ERROR_CODE::SUCCESS) {
-            // zed.retrieveImage(image_zed, VIEW::LEFT, MEM::CPU, new_image_size);
+            zed.retrieveImage(image_zed, VIEW::LEFT, MEM::CPU, new_image_size);
+            image_ocv_copy = image_ocv.clone();
             zed.retrieveImage(depth_image_zed_gpu, VIEW::DEPTH, MEM::GPU, new_image_size);
             depth_image_ocv_gpu.download(depth_image_ocv);
 
@@ -163,7 +165,7 @@ int main(int argc, char **argv) {
             }
             cv::rectangle(img_binary, top_left, bottom_right, red, 2);
             cv::imshow("Depth", img_binary);
-            // cv::imshow("Real Img", cropped_center);
+            cv::imshow("Real Img", image_ocv_copy);
             // cv::imshow("Canny", img_canny);
             // cv::imshow("Binary", img_binary);
 
@@ -316,6 +318,7 @@ bool space_finding_by_region(int mode) {
         top_left = region_tf_point + space_loc_tf.at(min_dist_index);
         bottom_right = top_left + templ_top_left_adjustment_from_center;
         cv::rectangle(img_binary, top_left, bottom_right, blue, 2);
+        cv::rectangle(image_ocv_copy, top_left, bottom_right, blue, 2);
 
         // testing the array
         // top_left = region_tf_point + space_loc_tf.at(0);
