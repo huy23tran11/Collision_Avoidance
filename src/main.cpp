@@ -163,7 +163,7 @@ int main(int argc, char **argv) {
                 space_finding();
                 cv::bitwise_and(img_binary_combined, black_frame, img_binary_combined);
             }
-            cv::rectangle(img_binary, top_left, bottom_right, red, 2);
+            // cv::rectangle(img_binary, top_left, bottom_right, red, 2);
             cv::imshow("Depth", img_binary);
             cv::imshow("Real Img", image_ocv_copy);
             // cv::imshow("Canny", img_canny);
