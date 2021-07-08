@@ -157,7 +157,9 @@ int main(int argc, char **argv) {
             depth_image_ocv_gpu.download(depth_image_ocv);
 
             // find matching template
-            cv::threshold(depth_image_ocv, img_binary, 100, 255, cv::THRESH_BINARY); //convert depth img to binary 
+            // img_binary = depth_image_ocv.clone();
+            cv::threshold(depth_image_ocv, img_binary, 80, 255, cv::THRESH_BINARY); //convert depth img to binary 
+
             cv::cvtColor(img_binary, img_binary_formatted, cv::COLOR_BGR2GRAY);
             if(is_masked_img()) {
                 space_finding();
@@ -166,8 +168,6 @@ int main(int argc, char **argv) {
             cv::rectangle(img_binary, top_left, bottom_right, red, 2);
             cv::imshow("Depth", img_binary);
             cv::imshow("Real Img", image_ocv_copy);
-            // cv::imshow("Canny", img_canny);
-            // cv::imshow("Binary", img_binary);
 
             // FPS counter:
             fps_counter(frame_counter, final_time, initial_time);
