@@ -312,8 +312,8 @@ bool space_finding_by_region(int mode) {
             }
         }
 
-        cout << "min dist: " << min_dist << endl;
-        cout << "point result: " << img_result_templ_matching.at<float>(space_loc_tf.at(min_dist_index).y, space_loc_tf.at(min_dist_index).x) << endl;
+        // cout << "min dist: " << min_dist << endl;
+        // cout << "point result: " << img_result_templ_matching.at<float>(space_loc_tf.at(min_dist_index).y, space_loc_tf.at(min_dist_index).x) << endl;
         // top_left = region_tf_point + min_loc;
         top_left = region_tf_point + space_loc_tf.at(min_dist_index);
         bottom_right = top_left + templ_top_left_adjustment_from_center;
