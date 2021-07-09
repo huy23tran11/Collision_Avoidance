@@ -39,22 +39,28 @@ cv::Mat slMat2cvMat(Mat& input);
 cv::cuda::GpuMat slMat2cvMatGPU(Mat& input);
 void saveGrayScaleImage(Camera& zed, std::string filename);
 bool is_masked_img();
-void finding_best_space(cv::Mat &img_binary, cv::Point &top_left, cv::Point &bottom_right);
+bool finding_best_space(cv::Mat &img_binary, cv::Rect &templ_rect, cv::Rect &center_Rect);
 void finding_all_avaiable_space(cv::Mat img_result_templ_matching, vector<cv::Point> &space_loc_tf);
 void fps_counter(int &frame_counter, int &final_time, int &initial_time);// fps counter show on screen
 int finding_closest_space_to_center(vector<cv::Point> &space_loc_tf, cv::Point center_frame_tf);
+bool check_rect_matched(cv::Rect templ_rect, cv::Rect center_rect);
+void manuver(bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect);
+
 
 //global variables setting up template for opening space
 
 int main(int argc, char **argv) {
     // imtermediate img and point
-    cv::Point top_left; // top left of the space finded 
-    cv::Point bottom_right; // bottom right of the space finded
+    cv::Rect templ_rect;
+    cv::Rect center_rect;
     cv::Mat img_binary; // convert to binary to easily prrcessed
 
     // color
     cv::Scalar red = cv::Scalar(0, 0, 256);
     cv::Scalar blue = cv::Scalar(256, 0, 0);
+
+    bool is_matched;
+    bool is_space;
 
     // Create a ZED camera object
     Camera zed;
@@ -108,14 +114,16 @@ int main(int argc, char **argv) {
             // image_ocv_copy = image_ocv.clone();
             zed.retrieveImage(depth_image_zed_gpu, VIEW::DEPTH, MEM::GPU, new_image_size);
             depth_image_ocv_gpu.download(depth_image_ocv);
-            cv::threshold(depth_image_ocv, img_binary, 100, 255, cv::THRESH_BINARY); //convert depth img to binary 
-            finding_best_space(img_binary, top_left, bottom_right);
-            // boxed the space
-            cv::rectangle(img_binary, top_left, bottom_right, blue, 2);
-            cv::rectangle(image_ocv, top_left, bottom_right, blue, 2);
+            cv::threshold(depth_image_ocv, img_binary, 80, 255, cv::THRESH_BINARY); //convert depth img to binary
+
+            is_space = finding_best_space(img_binary, templ_rect, center_rect);
+            cv::rectangle(image_ocv, templ_rect.tl(), templ_rect.br(), blue, 2);
+            cv::rectangle(image_ocv, center_rect.tl(), center_rect.br(), red, 2);
+            is_matched = check_rect_matched(templ_rect, center_rect);
+            manuver(is_space, is_matched, templ_rect, center_rect);
             //show img
-            cv::imshow("Depth", img_binary);
-            cv::imshow("Real", image_ocv);
+            cv::imshow("Depth", image_ocv);
+            // cv::imshow("Real", image_ocv);
 
             // FPS counter:
             fps_counter(frame_counter, final_time, initial_time);
@@ -184,7 +192,8 @@ static void empty( int, void* ){
 }
 
 
-void finding_best_space(cv::Mat &img_binary, cv::Point &top_left, cv::Point &bottom_right) {
+bool finding_best_space(cv::Mat &img_binary, cv::Rect &templ_rect, cv::Rect &center_Rect) {
+    cv::Mat img_bianry_cropped; // cropped img to only detect horizontal regions;
     int frame_w = img_binary.cols;
     int frame_h = img_binary.rows;
     int templ_w = frame_w / 5;
@@ -193,34 +202,36 @@ void finding_best_space(cv::Mat &img_binary, cv::Point &top_left, cv::Point &bot
     // double min_val, max_val;
     // cv:: Point min_loc, max_loc;
 
-    //for finding topleft templ point from center
-    cv::Point br_adjustment_from_tf;
-    br_adjustment_from_tf.x = templ_w;
-    br_adjustment_from_tf.y = templ_h;
-
     cv::Mat img_binary_formatted;
     cv::Mat templ(templ_h, templ_w, CV_8U, cv::Scalar(0, 0, 0));
     cv::Point center_frame_tf;
     center_frame_tf.x = (frame_w / 2) - (templ_w / 2);
     center_frame_tf.y = (frame_h / 2) - (templ_h / 2);
+    center_Rect = cv::Rect(center_frame_tf.x, center_frame_tf.y, templ_w, templ_h);
+    cv::Point cropped_frame_tf;
     vector<cv::Point> space_loc_tf;
-    cv::Mat black_frame(188, 336, CV_8U, cv::Scalar(0, 0, 0));
 
     cv::cvtColor(img_binary, img_binary_formatted, cv::COLOR_BGR2GRAY);
-    cv::matchTemplate(img_binary_formatted, templ, img_result_templ_matching, cv::TM_SQDIFF);
+    img_bianry_cropped = img_binary_formatted(cv::Rect(0, center_frame_tf.y, frame_w, templ_h)); // create a frame fit the templ, so that it can only slide left and right
+    cropped_frame_tf.x = 0;
+    cropped_frame_tf.y = center_frame_tf.y;
+    // cv::matchTemplate(img_binary_formatted, templ, img_result_templ_matching, cv::TM_SQDIFF);
+    cv::matchTemplate(img_bianry_cropped, templ, img_result_templ_matching, cv::TM_SQDIFF);
     // cv::minMaxLoc(img_result_templ_matching, &min_val, &max_val, &min_loc, &max_loc);
     // cout << img_result_templ_matching << endl;
 
     finding_all_avaiable_space(img_result_templ_matching, space_loc_tf);
 
     if(space_loc_tf.empty()) {
-        cout << "No space!!!" << endl;
+        return false;
     }
     else {
 
         int min_dist_index = finding_closest_space_to_center(space_loc_tf, center_frame_tf);
-        top_left =  space_loc_tf.at(min_dist_index);
-        bottom_right = top_left + br_adjustment_from_tf;
+        // top_left =  space_loc_tf.at(min_dist_index); // for main frame
+        cv::Point top_left =  cropped_frame_tf + space_loc_tf.at(min_dist_index); //for cropped frame
+        templ_rect = cv::Rect(top_left.x, top_left.y, templ_w, templ_h);
+        return true;
     }
 }
 
@@ -266,6 +277,27 @@ void fps_counter(int &frame_counter, int &final_time, int &initial_time) {
     }
 }
 
+void manuver(bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect) {
+    if(!is_space) {
+        cout << "STOP!" << endl;
+    }
+    else if(is_matched) {
+        cout << "go a head" << endl;
+    } else if(!is_matched) {
+        cout << "stop go a head and ";
+        if(templ_rect.x - center_rect.x > 0) {
+            cout << " slide right" << endl;
+        } else {
+            cout << " slide left" << endl;
+        }
+    } else {
+        cout << "stop, cannot figure what to do" << endl; 
+    }
+}
+
+bool check_rect_matched(cv::Rect templ_rect, cv::Rect center_rect) {
+    return (templ_rect.tl() == center_rect.tl());
+}
 
 
 // this function will masked every 10% of the fps frame by a bitwise_or 
