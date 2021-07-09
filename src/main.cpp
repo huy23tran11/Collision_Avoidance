@@ -183,25 +183,12 @@ static void empty( int, void* ){
 
 }
 
-// this function will masked every 10% of the fps frame by a bitwise_or 
-// then it will return true if it complete
-// bool is_masked_img() {
-//     if(frame_counter_for_space < (fps / 10)) {
-//         frame_counter_for_space++;
-//         cv::bitwise_or(img_binary_combined, img_binary_formatted, img_binary_combined);
-//         return false;
-//     }
-//     else {
-//         frame_counter_for_space = 0;
-//         return true;
-//     }
-// }
 
 void finding_best_space(cv::Mat &img_binary, cv::Point &top_left, cv::Point &bottom_right) {
-    int templ_w = 150;
-    int templ_h = 100;
     int frame_w = img_binary.cols;
     int frame_h = img_binary.rows;
+    int templ_w = frame_w / 5;
+    int templ_h = frame_h / 5;
     cv::Mat img_result_templ_matching;
     // double min_val, max_val;
     // cv:: Point min_loc, max_loc;
@@ -278,3 +265,19 @@ void fps_counter(int &frame_counter, int &final_time, int &initial_time) {
         initial_time = final_time;
     }
 }
+
+
+
+// this function will masked every 10% of the fps frame by a bitwise_or 
+// then it will return true if it complete
+// bool is_masked_img() {
+//     if(frame_counter_for_space < (fps / 10)) {
+//         frame_counter_for_space++;
+//         cv::bitwise_or(img_binary_combined, img_binary_formatted, img_binary_combined);
+//         return false;
+//     }
+//     else {
+//         frame_counter_for_space = 0;
+//         return true;
+//     }
+// }
