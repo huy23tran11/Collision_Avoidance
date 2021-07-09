@@ -296,7 +296,8 @@ void manuver(bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &cen
 }
 
 bool check_rect_matched(cv::Rect templ_rect, cv::Rect center_rect) {
-    return (templ_rect.tl() == center_rect.tl());
+    int error = 5;
+    return (templ_rect.tl().x < center_rect.tl().x + error && templ_rect.tl().x > center_rect.tl().x - error);
 }
 
 
