@@ -31,6 +31,38 @@ void manuver(bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &cen
 //global variables setting up template for opening space
 
 int main(int argc, char **argv) {
+    // Python interpreter
+	PyObject *pName, *pMod, *pDict;
+	Py_Initialize();
+    PyRun_SimpleString("import sys");
+    PyRun_SimpleString("sys.path.append('/home/nguyen/Visual-Studio-Workspace/Collision_Avoidance/src')");
+    pName = PyUnicode_FromString("PyMovement");
+    pMod = PyImport_Import(pName);
+    if (pMod == NULL) {
+        PyErr_Print();
+        std::exit(1);
+    }
+    pDict = PyModule_GetDict(pMod);
+    PyObject *pFunc, *pArgs, *pVal;
+    pArgs = NULL;
+
+    //Connection
+    pFunc = PyDict_GetItemString(pDict, "connectionFunc");  //PyObject to call the connection function
+    PyObject_CallObject(pFunc, pArgs);  //Call the connection function from the Python Script
+
+	//Arm
+	pFunc = PyDict_GetItemString(pDict, "arm");  //PyObject to call the connection function
+    PyObject_CallObject(pFunc, pArgs);  //Call the connection function from the Python Script
+	// cin.ignore();
+
+	//Takeoff
+	pFunc = PyDict_GetItemString(pDict, "takeoff");
+	pArgs = PyTuple_New(1);             //Create a PyObject for the arguments
+	pVal = PyFloat_FromDouble(6.5); //Set the value of pVal to the altitude
+	PyTuple_SetItem(pArgs, 0, pVal);   //Set the first parameter to the altitude
+	PyObject_CallObject(pFunc, pArgs);
+    std::exit(1);
+
     // imtermediate img and point
     cv::Rect templ_rect;
     cv::Rect center_rect;
@@ -87,15 +119,6 @@ int main(int argc, char **argv) {
     cv::Mat depth_image_ocv; // cpu opencv mat for display purposes
     Mat point_cloud;
 
-    // Python interpreter
-	PyObject* pInt;
-
-	Py_Initialize();
-
-	PyRun_SimpleString("print('Hello World from Embedded Python!!!')");
-	
-	Py_Finalize();
-    while(1);
     // Loop until 'q' is pressed
     char key = ' ';
     while (true) {
@@ -125,6 +148,7 @@ int main(int argc, char **argv) {
     // sl::Mat GPU memory needs to be free before the zed
     depth_image_zed_gpu.free();
     zed.close();
+    Py_Finalize();
     return 0;
 }
 
