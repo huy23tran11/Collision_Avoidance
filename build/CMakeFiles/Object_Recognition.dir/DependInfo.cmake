@@ -14,6 +14,7 @@ set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "/usr/local/zed/include"
   "/usr/local/include/opencv4"
   "../include"
+  "/usr/include/python3.6m"
   )
 
 # Targets to which this target links.

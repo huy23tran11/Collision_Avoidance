@@ -1,25 +1,5 @@
-///////////////////////////////////////////////////////////////////////////
-//
-// Copyright (c) 2020, STEREOLABS.
-//
-// All rights reserved.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-///////////////////////////////////////////////////////////////////////////
-
 /***********************************************************************************************
- ** This sample demonstrates how to use the ZED SDK with OpenCV.                              **
+ ** This sample collision avoidance algothmism how to use the ZED SDK with OpenCV.                              **
  ** Depth and images are captured with the ZED SDK, converted to OpenCV format and displayed. **
  ***********************************************************************************************/
 #include <iostream>
@@ -31,6 +11,7 @@
 #include <opencv2/opencv.hpp>
 // OpenCV dep
 #include <opencv2/cvconfig.h>
+#include <python3.6m/Python.h>
 
 using namespace std;
 using namespace sl;
@@ -105,8 +86,17 @@ int main(int argc, char **argv) {
     cv::cuda::GpuMat depth_image_ocv_gpu = slMat2cvMatGPU(depth_image_zed_gpu); // create an opencv GPU reference of the sl::Mat
     cv::Mat depth_image_ocv; // cpu opencv mat for display purposes
     Mat point_cloud;
-    // Loop until 'q' is pressed
 
+    // Python interpreter
+	PyObject* pInt;
+
+	Py_Initialize();
+
+	PyRun_SimpleString("print('Hello World from Embedded Python!!!')");
+	
+	Py_Finalize();
+    while(1);
+    // Loop until 'q' is pressed
     char key = ' ';
     while (true) {
         if (zed.grab(runtime_parameters) == ERROR_CODE::SUCCESS) {
@@ -196,8 +186,8 @@ bool finding_best_space(cv::Mat &img_binary, cv::Rect &templ_rect, cv::Rect &cen
     cv::Mat img_bianry_cropped; // cropped img to only detect horizontal regions;
     int frame_w = img_binary.cols;
     int frame_h = img_binary.rows;
-    int templ_w = frame_w / 5;
-    int templ_h = frame_h / 5;
+    int templ_w = frame_w / 4;
+    int templ_h = frame_h / 4;
     cv::Mat img_result_templ_matching;
     // double min_val, max_val;
     // cv:: Point min_loc, max_loc;

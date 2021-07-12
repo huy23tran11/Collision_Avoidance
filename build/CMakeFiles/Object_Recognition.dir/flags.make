@@ -6,5 +6,5 @@ CXX_FLAGS = -O2 -g -DNDEBUG   -Wno-format-extra-args -std=c++14 -O3 -std=gnu++11
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/usr/local/cuda/include -I/usr/local/zed/include -isystem /usr/local/include/opencv4 -I/home/nguyen/Visual-Studio-Workspace/Collision_Avoidance/include 
+CXX_INCLUDES = -I/usr/local/cuda/include -I/usr/local/zed/include -isystem /usr/local/include/opencv4 -I/home/nguyen/Visual-Studio-Workspace/Collision_Avoidance/include -I/usr/include/python3.6m 
 
