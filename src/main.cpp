@@ -1,5 +1,5 @@
 /***********************************************************************************************
- ** This sample collision avoidance algothmism how to use the ZED SDK with OpenCV.                              **
+ ** This sample collision avoidance algothmism how to use the ZED SDK with OpenCV.            **
  ** Depth and images are captured with the ZED SDK, converted to OpenCV format and displayed. **
  ***********************************************************************************************/
 #include <iostream>
@@ -318,7 +318,7 @@ void manuver(cv::Mat img, bool is_space, bool is_matched, cv::Rect &templ_rect, 
         cv::putText(img, "STOP", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, red, 3);
     }
     else if(is_matched) {
-        cv::putText(img, "go a head", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, blue, 3);
+        cv::putText(img, "go straight", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, blue, 3);
     } else if(!is_matched) {
         if(templ_rect.x - center_rect.x > 0) {
             cv::putText(img, " slide right", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, blue, 3);
