@@ -1,25 +1,5 @@
-///////////////////////////////////////////////////////////////////////////
-//
-// Copyright (c) 2020, STEREOLABS.
-//
-// All rights reserved.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-///////////////////////////////////////////////////////////////////////////
-
 /***********************************************************************************************
- ** This sample demonstrates how to use the ZED SDK with OpenCV.                              **
+ ** This sample collision avoidance algothmism how to use the ZED SDK with OpenCV.                              **
  ** Depth and images are captured with the ZED SDK, converted to OpenCV format and displayed. **
  ***********************************************************************************************/
 #include <iostream>
@@ -31,6 +11,7 @@
 #include <opencv2/opencv.hpp>
 // OpenCV dep
 #include <opencv2/cvconfig.h>
+// #include <python3.6m/Python.h>
 
 using namespace std;
 using namespace sl;
@@ -41,15 +22,47 @@ void saveGrayScaleImage(Camera& zed, std::string filename);
 bool is_masked_img();
 bool finding_best_space(cv::Mat &img_binary, cv::Rect &templ_rect, cv::Rect &center_Rect);
 void finding_all_avaiable_space(cv::Mat img_result_templ_matching, vector<cv::Point> &space_loc_tf);
-void fps_counter(int &frame_counter, int &final_time, int &initial_time);// fps counter show on screen
+int fps_counter(int &frame_counter, int &final_time, int &initial_time);// fps counter show on screen
 int finding_closest_space_to_center(vector<cv::Point> &space_loc_tf, cv::Point center_frame_tf);
 bool check_rect_matched(cv::Rect templ_rect, cv::Rect center_rect);
-void manuver(bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect);
+void manuver(cv::Mat img, bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect);
 
 
 //global variables setting up template for opening space
 
 int main(int argc, char **argv) {
+    // Python interpreter
+	// PyObject *pName, *pMod, *pDict;
+	// Py_Initialize();
+    // PyRun_SimpleString("import sys");
+    // PyRun_SimpleString("sys.path.append('/home/nguyen/Visual-Studio-Workspace/Collision_Avoidance/src')");
+    // pName = PyUnicode_FromString("PyMovement");
+    // pMod = PyImport_Import(pName);
+    // if (pMod == NULL) {
+    //     PyErr_Print();
+    //     std::exit(1);
+    // }
+    // pDict = PyModule_GetDict(pMod);
+    // PyObject *pFunc, *pArgs, *pVal;
+    // pArgs = NULL;
+
+    // //Connection
+    // pFunc = PyDict_GetItemString(pDict, "connectionFunc");  //PyObject to call the connection function
+    // PyObject_CallObject(pFunc, pArgs);  //Call the connection function from the Python Script
+
+	// //Arm
+	// pFunc = PyDict_GetItemString(pDict, "arm");  //PyObject to call the connection function
+    // PyObject_CallObject(pFunc, pArgs);  //Call the connection function from the Python Script
+	// // cin.ignore();
+
+	// //Takeoff
+	// pFunc = PyDict_GetItemString(pDict, "takeoff");
+	// pArgs = PyTuple_New(1);             //Create a PyObject for the arguments
+	// pVal = PyFloat_FromDouble(6.5); //Set the value of pVal to the altitude
+	// PyTuple_SetItem(pArgs, 0, pVal);   //Set the first parameter to the altitude
+	// PyObject_CallObject(pFunc, pArgs);
+    // std::exit(1);
+
     // imtermediate img and point
     cv::Rect templ_rect;
     cv::Rect center_rect;
@@ -64,7 +77,7 @@ int main(int argc, char **argv) {
 
     // Create a ZED camera object
     Camera zed;
-    // set up fps counter 
+    // set up fps counter
     int initial_time = 0;
     int final_time = 0;
     int frame_counter = 0;
@@ -105,8 +118,11 @@ int main(int argc, char **argv) {
     cv::cuda::GpuMat depth_image_ocv_gpu = slMat2cvMatGPU(depth_image_zed_gpu); // create an opencv GPU reference of the sl::Mat
     cv::Mat depth_image_ocv; // cpu opencv mat for display purposes
     Mat point_cloud;
+    int img_counter = 0;
+    int fps;
+    string final_real_img;
+    string final_binary_img;
     // Loop until 'q' is pressed
-
     char key = ' ';
     while (true) {
         if (zed.grab(runtime_parameters) == ERROR_CODE::SUCCESS) {
@@ -117,16 +133,32 @@ int main(int argc, char **argv) {
             cv::threshold(depth_image_ocv, img_binary, 80, 255, cv::THRESH_BINARY); //convert depth img to binary
 
             is_space = finding_best_space(img_binary, templ_rect, center_rect);
-            cv::rectangle(image_ocv, templ_rect.tl(), templ_rect.br(), blue, 2);
-            cv::rectangle(image_ocv, center_rect.tl(), center_rect.br(), red, 2);
+
+            cv::rectangle(image_ocv, templ_rect.tl(), templ_rect.br(), blue, 2); // real img
+            cv::rectangle(image_ocv, center_rect.tl(), center_rect.br(), red, 2); // real img
+            cv::rectangle(img_binary, templ_rect.tl(), templ_rect.br(), blue, 2); // binary img 
+            cv::rectangle(img_binary, center_rect.tl(), center_rect.br(), red, 2); // binary img
+
             is_matched = check_rect_matched(templ_rect, center_rect);
-            manuver(is_space, is_matched, templ_rect, center_rect);
+            manuver(image_ocv, is_space, is_matched, templ_rect, center_rect); // guidance on real img
+            manuver(img_binary, is_space, is_matched, templ_rect, center_rect); // guidance on binary img
+            
             //show img
-            cv::imshow("Depth", image_ocv);
-            // cv::imshow("Real", image_ocv);
+            cv::imshow("Real", image_ocv);
+            // cv::imshow("Depth", img_binary);
+
+            //save img
+            string img_number = std::to_string(img_counter);
+            final_real_img = "/home/nguyen/Desktop/img/final_real_img_" + img_number + ".jpg";
+            final_binary_img = "/home/nguyen/Desktop/img/binary_real_img_" + img_number + ".jpg";
+            if(frame_counter == 0) {
+                cv::imwrite(final_real_img, image_ocv);
+                cv::imwrite(final_binary_img, img_binary);
+                img_counter++;
+            }
 
             // FPS counter:
-            fps_counter(frame_counter, final_time, initial_time);
+            fps = fps_counter(frame_counter, final_time, initial_time);
         }
     key = cv::waitKey(1);
     if (key == 'q') {break;}
@@ -135,6 +167,7 @@ int main(int argc, char **argv) {
     // sl::Mat GPU memory needs to be free before the zed
     depth_image_zed_gpu.free();
     zed.close();
+    // Py_Finalize();
     return 0;
 }
 
@@ -196,8 +229,8 @@ bool finding_best_space(cv::Mat &img_binary, cv::Rect &templ_rect, cv::Rect &cen
     cv::Mat img_bianry_cropped; // cropped img to only detect horizontal regions;
     int frame_w = img_binary.cols;
     int frame_h = img_binary.rows;
-    int templ_w = frame_w / 5;
-    int templ_h = frame_h / 5;
+    int templ_w = frame_w / 4;
+    int templ_h = frame_h / 4;
     cv::Mat img_result_templ_matching;
     // double min_val, max_val;
     // cv:: Point min_loc, max_loc;
@@ -264,7 +297,7 @@ int finding_closest_space_to_center(vector<cv::Point> &space_loc_tf, cv::Point c
 }
 
 
-void fps_counter(int &frame_counter, int &final_time, int &initial_time) {
+int fps_counter(int &frame_counter, int &final_time, int &initial_time) {
     frame_counter++;
     int fps;
     final_time = time(NULL);
@@ -275,23 +308,25 @@ void fps_counter(int &frame_counter, int &final_time, int &initial_time) {
         frame_counter = 0;
         initial_time = final_time;
     }
+    return fps;
 }
 
-void manuver(bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect) {
+void manuver(cv::Mat img, bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect) {
+    cv::Scalar red = cv::Scalar(0, 0, 256);
+    cv::Scalar blue = cv::Scalar(256, 0, 0);
     if(!is_space) {
-        cout << "STOP!" << endl;
+        cv::putText(img, "STOP", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, red, 3);
     }
     else if(is_matched) {
-        cout << "go a head" << endl;
+        cv::putText(img, "go a head", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, blue, 3);
     } else if(!is_matched) {
-        cout << "stop go a head and ";
         if(templ_rect.x - center_rect.x > 0) {
-            cout << " slide right" << endl;
+            cv::putText(img, " slide right", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, blue, 3);
         } else {
-            cout << " slide left" << endl;
+            cv::putText(img, " slide left", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, blue, 3);
         }
     } else {
-        cout << "stop, cannot figure what to do" << endl; 
+        cv::putText(img, "STOP, cannot figure what to do", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, red, 3);
     }
 }
 
