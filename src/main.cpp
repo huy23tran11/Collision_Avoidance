@@ -124,8 +124,8 @@ int main(int argc, char **argv) {
     string final_binary_img;
 
     //video capture
-    cv::VideoWriter video_real("/home/nvidia/Desktop/video/real_img.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 20, cv::Size(new_width, new_height));
-    cv::VideoWriter video_binary("/home/nvidia/Desktop/video/binary_img.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 20, cv::Size(new_width, new_height));
+    cv::VideoWriter video_real("/home/nvidia/Desktop/video/real_img.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 10, cv::Size(new_width, new_height));
+    cv::VideoWriter video_binary("/home/nvidia/Desktop/video/binary_img.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 10, cv::Size(new_width, new_height));
 
     // Loop until 'q' is pressed
     char key = ' ';
@@ -158,29 +158,29 @@ int main(int argc, char **argv) {
             //     img_counter++;
             // }
 
-            // save video
-            video_real.write(image_ocv);
-            video_binary.write(img_binary);
-
             // FPS counter:
             fps_counter(fps, frame_counter, final_time, initial_time);
             string fps_str = "FPS: " + std::to_string(fps);
-            cv::putText(image_ocv, fps_str, cv::Point(20, 20), cv::FONT_HERSHEY_PLAIN, 2, red, 2);
-            cv::putText(img_binary, fps_str, cv::Point(20, 20), cv::FONT_HERSHEY_PLAIN, 2, red, 2);
+            cv::putText(image_ocv, fps_str, cv::Point(20, 20), cv::FONT_HERSHEY_PLAIN, 1, red, 1);
+            cv::putText(img_binary, fps_str, cv::Point(20, 20), cv::FONT_HERSHEY_PLAIN, 1, red, 1);
 
             //show img
-            // cv::imshow("Real", image_ocv);
+            cv::imshow("Real", image_ocv);
             // cv::imshow("Depth", img_binary);
+
+            // save video
+            video_real.write(image_ocv);
+            video_binary.write(img_binary);
         }
     key = cv::waitKey(1);
-    if (key == 27) {break;}
+    if (key == 'q') {break;}
     }
 
     // sl::Mat GPU memory needs to be free before the zed
-    depth_image_zed_gpu.free();
-    zed.close();
     video_binary.release();
     video_real.release();
+    depth_image_zed_gpu.free();
+    zed.close();
     // Py_Finalize();
     return 0;
 }
