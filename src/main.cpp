@@ -122,6 +122,11 @@ int main(int argc, char **argv) {
     int fps = 0;
     string final_real_img;
     string final_binary_img;
+
+    //video capture
+    cv::VideoWriter video_real("/home/nvidia/Desktop/video/real_img.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 20, cv::Size(new_width, new_height));
+    cv::VideoWriter video_binary("/home/nvidia/Desktop/video/binary_img.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 20, cv::Size(new_width, new_height));
+
     // Loop until 'q' is pressed
     char key = ' ';
     while (true) {
@@ -153,6 +158,10 @@ int main(int argc, char **argv) {
             //     img_counter++;
             // }
 
+            // save video
+            video_real.write(image_ocv);
+            video_binary.write(img_binary);
+
             // FPS counter:
             fps_counter(fps, frame_counter, final_time, initial_time);
             string fps_str = "FPS: " + std::to_string(fps);
@@ -160,16 +169,18 @@ int main(int argc, char **argv) {
             cv::putText(img_binary, fps_str, cv::Point(20, 20), cv::FONT_HERSHEY_PLAIN, 2, red, 2);
 
             //show img
-            cv::imshow("Real", image_ocv);
-            cv::imshow("Depth", img_binary);
+            // cv::imshow("Real", image_ocv);
+            // cv::imshow("Depth", img_binary);
         }
     key = cv::waitKey(1);
-    if (key == 'q') {break;}
+    if (key == 27) {break;}
     }
 
     // sl::Mat GPU memory needs to be free before the zed
     depth_image_zed_gpu.free();
     zed.close();
+    video_binary.release();
+    video_real.release();
     // Py_Finalize();
     return 0;
 }
