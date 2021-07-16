@@ -89,6 +89,8 @@ int main(int argc, char **argv) {
     init_params.depth_mode = DEPTH_MODE::PERFORMANCE;
     init_params.coordinate_units = UNIT::METER;
     init_params.camera_fps = 100;
+    init_params.depth_minimum_distance = 0.5;
+    init_params.depth_maximum_distance = 3;
     if (argc > 1) init_params.input.setFromSVOFile(argv[1]);
 
     // Open the camera
@@ -133,10 +135,11 @@ int main(int argc, char **argv) {
     strftime(buffer,sizeof(buffer),"%d-%m-%Y %H:%M:%S",timeinfo);
     std::string str(buffer);
 
-    cv::VideoWriter video_real("/home/nvidia/Desktop/video_real/real " + str + ".avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 15, cv::Size(new_width, new_height));
-    cv::VideoWriter video_binary("/home/nvidia/Desktop/video_binary/binary " + str + ".avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 15, cv::Size(new_width, new_height));
+    cv::VideoWriter video_real("/home/nvidia/Desktop/video_real/real " + str + ".avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 30, cv::Size(new_width, new_height));
+    cv::VideoWriter video_binary("/home/nvidia/Desktop/video_binary/binary " + str + ".avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 30, cv::Size(new_width, new_height));
     cv::Mat img_real_for_video;
     cv::Mat img_binary_for_video;
+    
     // Loop until 'q' is pressed
     char key = ' ';
     while (true) {
@@ -145,7 +148,7 @@ int main(int argc, char **argv) {
             // image_ocv_copy = image_ocv.clone();
             zed.retrieveImage(depth_image_zed_gpu, VIEW::DEPTH, MEM::GPU, new_image_size);
             depth_image_ocv_gpu.download(depth_image_ocv);
-            cv::threshold(depth_image_ocv, img_binary, 80, 255, cv::THRESH_BINARY); //convert depth img to binary
+            cv::threshold(depth_image_ocv, img_binary, 5, 255, cv::THRESH_BINARY); //convert depth img to binary
 
             is_space = finding_best_space(img_binary, templ_rect, center_rect);
 
@@ -158,15 +161,20 @@ int main(int argc, char **argv) {
             manuver(image_ocv, is_space, is_matched, templ_rect, center_rect); // guidance on real img
             manuver(img_binary, is_space, is_matched, templ_rect, center_rect); // guidance on binary img
 
-            // //save img
-            // string img_number = std::to_string(img_counter);
-            // final_real_img = "/home/nvidia/Desktop/img/final_real_img_" + img_number + ".jpg";
-            // final_binary_img = "/home/nvidia/Desktop/img/binary_real_img_" + img_number + ".jpg";
-            // if(frame_counter == 0) {
-            //     cv::imwrite(final_real_img, image_ocv);
-            //     cv::imwrite(final_binary_img, img_binary);
-            //     img_counter++;
-            // }
+            // save img
+            time (&rawtime);
+            timeinfo = localtime(&rawtime);
+            strftime(buffer,sizeof(buffer),"%d-%m-%Y %H:%M:%S",timeinfo);
+            std::string str(buffer);
+
+            string img_number = std::to_string(img_counter);
+            final_real_img = "/home/nvidia/Desktop/img_real/real_img_" + str + ".jpg";
+            final_binary_img = "/home/nvidia/Desktop/img_binary/binary_img_" + str + ".jpg";
+            if(frame_counter == 0) {
+                cv::imwrite(final_real_img, image_ocv);
+                cv::imwrite(final_binary_img, img_binary);
+                img_counter++;
+            }
 
             // FPS counter:
             fps_counter(fps, frame_counter, final_time, initial_time);
@@ -175,7 +183,7 @@ int main(int argc, char **argv) {
             cv::putText(img_binary, fps_str, cv::Point(20, 20), cv::FONT_HERSHEY_PLAIN, 1, red, 1);
 
             //show img
-            // cv::imshow("Real", image_ocv);
+            // cv::imshow("Real", depth_image_ocv);
             // cv::imshow("Depth", img_binary);
 
             // save video
