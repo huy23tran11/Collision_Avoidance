@@ -22,7 +22,7 @@ void saveGrayScaleImage(Camera& zed, std::string filename);
 bool is_masked_img();
 bool finding_best_space(cv::Mat &img_binary, cv::Rect &templ_rect, cv::Rect &center_Rect);
 void finding_all_avaiable_space(cv::Mat img_result_templ_matching, vector<cv::Point> &space_loc_tf);
-int fps_counter(int &frame_counter, int &final_time, int &initial_time);// fps counter show on screen
+void fps_counter(int &fps, int &frame_counter, int &final_time, int &initial_time);// fps counter show on screen
 int finding_closest_space_to_center(vector<cv::Point> &space_loc_tf, cv::Point center_frame_tf);
 bool check_rect_matched(cv::Rect templ_rect, cv::Rect center_rect);
 void manuver(cv::Mat img, bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect);
@@ -119,7 +119,7 @@ int main(int argc, char **argv) {
     cv::Mat depth_image_ocv; // cpu opencv mat for display purposes
     Mat point_cloud;
     int img_counter = 0;
-    int fps;
+    int fps = 0;
     string final_real_img;
     string final_binary_img;
     // Loop until 'q' is pressed
@@ -142,23 +142,26 @@ int main(int argc, char **argv) {
             is_matched = check_rect_matched(templ_rect, center_rect);
             manuver(image_ocv, is_space, is_matched, templ_rect, center_rect); // guidance on real img
             manuver(img_binary, is_space, is_matched, templ_rect, center_rect); // guidance on binary img
-            
-            //show img
-            cv::imshow("Real", image_ocv);
-            // cv::imshow("Depth", img_binary);
 
-            //save img
-            string img_number = std::to_string(img_counter);
-            final_real_img = "/home/nguyen/Desktop/img/final_real_img_" + img_number + ".jpg";
-            final_binary_img = "/home/nguyen/Desktop/img/binary_real_img_" + img_number + ".jpg";
-            if(frame_counter == 0) {
-                cv::imwrite(final_real_img, image_ocv);
-                cv::imwrite(final_binary_img, img_binary);
-                img_counter++;
-            }
+            // //save img
+            // string img_number = std::to_string(img_counter);
+            // final_real_img = "/home/nvidia/Desktop/img/final_real_img_" + img_number + ".jpg";
+            // final_binary_img = "/home/nvidia/Desktop/img/binary_real_img_" + img_number + ".jpg";
+            // if(frame_counter == 0) {
+            //     cv::imwrite(final_real_img, image_ocv);
+            //     cv::imwrite(final_binary_img, img_binary);
+            //     img_counter++;
+            // }
 
             // FPS counter:
-            fps = fps_counter(frame_counter, final_time, initial_time);
+            fps_counter(fps, frame_counter, final_time, initial_time);
+            string fps_str = "FPS: " + std::to_string(fps);
+            cv::putText(image_ocv, fps_str, cv::Point(20, 20), cv::FONT_HERSHEY_PLAIN, 2, red, 2);
+            cv::putText(img_binary, fps_str, cv::Point(20, 20), cv::FONT_HERSHEY_PLAIN, 2, red, 2);
+
+            //show img
+            cv::imshow("Real", image_ocv);
+            cv::imshow("Depth", img_binary);
         }
     key = cv::waitKey(1);
     if (key == 'q') {break;}
@@ -297,9 +300,8 @@ int finding_closest_space_to_center(vector<cv::Point> &space_loc_tf, cv::Point c
 }
 
 
-int fps_counter(int &frame_counter, int &final_time, int &initial_time) {
+void fps_counter(int &fps, int &frame_counter, int &final_time, int &initial_time) {
     frame_counter++;
-    int fps;
     final_time = time(NULL);
     if(final_time - initial_time > 0) {
         fps = frame_counter / (final_time - initial_time);
@@ -308,7 +310,6 @@ int fps_counter(int &frame_counter, int &final_time, int &initial_time) {
         frame_counter = 0;
         initial_time = final_time;
     }
-    return fps;
 }
 
 void manuver(cv::Mat img, bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect) {
@@ -318,7 +319,7 @@ void manuver(cv::Mat img, bool is_space, bool is_matched, cv::Rect &templ_rect, 
         cv::putText(img, "STOP", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, red, 3);
     }
     else if(is_matched) {
-        cv::putText(img, "go a head", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, blue, 3);
+        cv::putText(img, "go to location", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, blue, 3);
     } else if(!is_matched) {
         if(templ_rect.x - center_rect.x > 0) {
             cv::putText(img, " slide right", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, blue, 3);

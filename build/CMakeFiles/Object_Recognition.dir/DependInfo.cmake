@@ -4,13 +4,13 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/nguyen/Visual-Studio-Workspace/Collision_Avoidance/src/main.cpp" "/home/nguyen/Visual-Studio-Workspace/Collision_Avoidance/build/CMakeFiles/Object_Recognition.dir/src/main.o"
+  "/home/nvidia/Visual_Code_Workspace/Collision_Avoidance/src/main.cpp" "/home/nvidia/Visual_Code_Workspace/Collision_Avoidance/build/CMakeFiles/Object_Recognition.dir/src/main.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
-  "/usr/local/cuda/include"
+  "/usr/local/cuda-10.2/include"
   "/usr/local/zed/include"
   "/usr/local/include/opencv4"
   "../include"

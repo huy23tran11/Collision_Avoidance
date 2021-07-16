@@ -1,3 +1,3 @@
-/home/nguyen/Visual-Studio-Workspace/Collision_Avoidance/build/CMakeFiles/rebuild_cache.dir
-/home/nguyen/Visual-Studio-Workspace/Collision_Avoidance/build/CMakeFiles/Object_Recognition.dir
-/home/nguyen/Visual-Studio-Workspace/Collision_Avoidance/build/CMakeFiles/edit_cache.dir
+/home/nvidia/Visual_Code_Workspace/Collision_Avoidance/build/CMakeFiles/rebuild_cache.dir
+/home/nvidia/Visual_Code_Workspace/Collision_Avoidance/build/CMakeFiles/Object_Recognition.dir
+/home/nvidia/Visual_Code_Workspace/Collision_Avoidance/build/CMakeFiles/edit_cache.dir

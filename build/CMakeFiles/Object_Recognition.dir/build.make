@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/nguyen/Visual-Studio-Workspace/Collision_Avoidance
+CMAKE_SOURCE_DIR = /home/nvidia/Visual_Code_Workspace/Collision_Avoidance
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/nguyen/Visual-Studio-Workspace/Collision_Avoidance/build
+CMAKE_BINARY_DIR = /home/nvidia/Visual_Code_Workspace/Collision_Avoidance/build
 
 # Include any dependencies generated for this target.
 include CMakeFiles/Object_Recognition.dir/depend.make
@@ -59,16 +59,16 @@ include CMakeFiles/Object_Recognition.dir/flags.make
 
 CMakeFiles/Object_Recognition.dir/src/main.o: CMakeFiles/Object_Recognition.dir/flags.make
 CMakeFiles/Object_Recognition.dir/src/main.o: ../src/main.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/nguyen/Visual-Studio-Workspace/Collision_Avoidance/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/Object_Recognition.dir/src/main.o"
-	/usr/bin/x86_64-linux-gnu-g++-7  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Object_Recognition.dir/src/main.o -c /home/nguyen/Visual-Studio-Workspace/Collision_Avoidance/src/main.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/nvidia/Visual_Code_Workspace/Collision_Avoidance/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/Object_Recognition.dir/src/main.o"
+	/usr/bin/g++-7  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/Object_Recognition.dir/src/main.o -c /home/nvidia/Visual_Code_Workspace/Collision_Avoidance/src/main.cpp
 
 CMakeFiles/Object_Recognition.dir/src/main.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Object_Recognition.dir/src/main.i"
-	/usr/bin/x86_64-linux-gnu-g++-7 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/nguyen/Visual-Studio-Workspace/Collision_Avoidance/src/main.cpp > CMakeFiles/Object_Recognition.dir/src/main.i
+	/usr/bin/g++-7 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/nvidia/Visual_Code_Workspace/Collision_Avoidance/src/main.cpp > CMakeFiles/Object_Recognition.dir/src/main.i
 
 CMakeFiles/Object_Recognition.dir/src/main.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Object_Recognition.dir/src/main.s"
-	/usr/bin/x86_64-linux-gnu-g++-7 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/nguyen/Visual-Studio-Workspace/Collision_Avoidance/src/main.cpp -o CMakeFiles/Object_Recognition.dir/src/main.s
+	/usr/bin/g++-7 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/nvidia/Visual_Code_Workspace/Collision_Avoidance/src/main.cpp -o CMakeFiles/Object_Recognition.dir/src/main.s
 
 CMakeFiles/Object_Recognition.dir/src/main.o.requires:
 
@@ -91,79 +91,78 @@ Object_Recognition_EXTERNAL_OBJECTS =
 Object_Recognition: CMakeFiles/Object_Recognition.dir/src/main.o
 Object_Recognition: CMakeFiles/Object_Recognition.dir/build.make
 Object_Recognition: /usr/local/zed/lib/libsl_zed.so
-Object_Recognition: /usr/lib/x86_64-linux-gnu/libopenblas.so
-Object_Recognition: /usr/lib/x86_64-linux-gnu/libusb-1.0.so
-Object_Recognition: /usr/lib/x86_64-linux-gnu/libcuda.so
-Object_Recognition: /usr/local/cuda/lib64/libcudart.so
-Object_Recognition: /usr/local/lib/libopencv_gapi.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_stitching.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_alphamat.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_aruco.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_barcode.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_bgsegm.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_bioinspired.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_ccalib.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_cudabgsegm.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_cudafeatures2d.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_cudaobjdetect.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_cudastereo.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_dnn_objdetect.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_dnn_superres.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_dpm.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_face.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_freetype.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_fuzzy.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_hdf.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_hfs.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_img_hash.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_intensity_transform.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_line_descriptor.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_mcc.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_quality.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_rapid.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_reg.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_rgbd.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_saliency.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_sfm.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_stereo.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_structured_light.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_superres.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_surface_matching.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_tracking.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_videostab.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_wechat_qrcode.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_xfeatures2d.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_xobjdetect.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_xphoto.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_shape.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_highgui.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_datasets.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_plot.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_text.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_ml.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_phase_unwrapping.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_videoio.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_cudaoptflow.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_cudalegacy.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_cudawarping.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_optflow.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_ximgproc.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_video.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_dnn.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_imgcodecs.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_objdetect.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_calib3d.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_features2d.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_flann.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_photo.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_cudaimgproc.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_cudafilters.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_imgproc.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_cudaarithm.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_core.so.4.5.3
-Object_Recognition: /usr/local/lib/libopencv_cudev.so.4.5.3
+Object_Recognition: /usr/lib/aarch64-linux-gnu/libopenblas.so
+Object_Recognition: /usr/lib/aarch64-linux-gnu/libusb-1.0.so
+Object_Recognition: /usr/lib/aarch64-linux-gnu/libcuda.so
+Object_Recognition: /usr/local/cuda-10.2/lib64/libcudart.so
+Object_Recognition: /usr/local/lib/libopencv_gapi.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_stitching.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_alphamat.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_aruco.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_bgsegm.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_bioinspired.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_ccalib.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_cudabgsegm.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_cudafeatures2d.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_cudaobjdetect.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_cudastereo.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_dnn_objdetect.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_dnn_superres.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_dpm.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_face.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_freetype.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_fuzzy.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_hdf.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_hfs.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_img_hash.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_intensity_transform.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_line_descriptor.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_mcc.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_quality.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_rapid.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_reg.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_rgbd.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_saliency.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_sfm.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_stereo.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_structured_light.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_superres.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_surface_matching.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_tracking.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_videostab.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_wechat_qrcode.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_xfeatures2d.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_xobjdetect.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_xphoto.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_shape.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_highgui.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_datasets.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_plot.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_text.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_ml.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_phase_unwrapping.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_videoio.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_cudaoptflow.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_cudalegacy.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_cudawarping.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_optflow.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_ximgproc.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_video.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_dnn.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_imgcodecs.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_objdetect.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_calib3d.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_features2d.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_flann.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_photo.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_cudaimgproc.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_cudafilters.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_imgproc.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_cudaarithm.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_core.so.4.5.2
+Object_Recognition: /usr/local/lib/libopencv_cudev.so.4.5.2
 Object_Recognition: CMakeFiles/Object_Recognition.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/nguyen/Visual-Studio-Workspace/Collision_Avoidance/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable Object_Recognition"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/nvidia/Visual_Code_Workspace/Collision_Avoidance/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable Object_Recognition"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/Object_Recognition.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -180,6 +179,6 @@ CMakeFiles/Object_Recognition.dir/clean:
 .PHONY : CMakeFiles/Object_Recognition.dir/clean
 
 CMakeFiles/Object_Recognition.dir/depend:
-	cd /home/nguyen/Visual-Studio-Workspace/Collision_Avoidance/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/nguyen/Visual-Studio-Workspace/Collision_Avoidance /home/nguyen/Visual-Studio-Workspace/Collision_Avoidance /home/nguyen/Visual-Studio-Workspace/Collision_Avoidance/build /home/nguyen/Visual-Studio-Workspace/Collision_Avoidance/build /home/nguyen/Visual-Studio-Workspace/Collision_Avoidance/build/CMakeFiles/Object_Recognition.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/nvidia/Visual_Code_Workspace/Collision_Avoidance/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/nvidia/Visual_Code_Workspace/Collision_Avoidance /home/nvidia/Visual_Code_Workspace/Collision_Avoidance /home/nvidia/Visual_Code_Workspace/Collision_Avoidance/build /home/nvidia/Visual_Code_Workspace/Collision_Avoidance/build /home/nvidia/Visual_Code_Workspace/Collision_Avoidance/build/CMakeFiles/Object_Recognition.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/Object_Recognition.dir/depend
 
