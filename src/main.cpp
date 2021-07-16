@@ -124,9 +124,10 @@ int main(int argc, char **argv) {
     string final_binary_img;
 
     //video capture
-    cv::VideoWriter video_real("/home/nvidia/Desktop/video/real_img.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 10, cv::Size(new_width, new_height));
-    cv::VideoWriter video_binary("/home/nvidia/Desktop/video/binary_img.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 10, cv::Size(new_width, new_height));
-
+    cv::VideoWriter video_real("/home/nvidia/Desktop/video/real_img.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 20, cv::Size(new_width, new_height));
+    cv::VideoWriter video_binary("/home/nvidia/Desktop/video/binary_img.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 20, cv::Size(new_width, new_height));
+    cv::Mat img_real_for_video;
+    cv::Mat img_binary_for_video;
     // Loop until 'q' is pressed
     char key = ' ';
     while (true) {
@@ -169,8 +170,10 @@ int main(int argc, char **argv) {
             // cv::imshow("Depth", img_binary);
 
             // save video
-            video_real.write(image_ocv);
-            video_binary.write(img_binary);
+            cv::cvtColor(image_ocv, img_real_for_video, cv::COLOR_RGB2BGR);
+            cv::cvtColor(img_binary, img_binary_for_video, cv::COLOR_RGB2BGR);
+            video_real.write(img_real_for_video);
+            video_binary.write(img_binary_for_video);
         }
     key = cv::waitKey(1);
     if (key == 'q') {break;}
