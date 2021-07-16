@@ -12,6 +12,7 @@
 // OpenCV dep
 #include <opencv2/cvconfig.h>
 // #include <python3.6m/Python.h>
+#include <ctime>
 
 using namespace std;
 using namespace sl;
@@ -124,8 +125,16 @@ int main(int argc, char **argv) {
     string final_binary_img;
 
     //video capture
-    cv::VideoWriter video_real("/home/nvidia/Desktop/video/real_img.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 20, cv::Size(new_width, new_height));
-    cv::VideoWriter video_binary("/home/nvidia/Desktop/video/binary_img.avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 20, cv::Size(new_width, new_height));
+    time_t rawtime;
+    struct tm * timeinfo;
+    char buffer[80];
+    time (&rawtime);
+    timeinfo = localtime(&rawtime);
+    strftime(buffer,sizeof(buffer),"%d-%m-%Y %H:%M:%S",timeinfo);
+    std::string str(buffer);
+
+    cv::VideoWriter video_real("/home/nvidia/Desktop/video_real/real " + str + ".avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 15, cv::Size(new_width, new_height));
+    cv::VideoWriter video_binary("/home/nvidia/Desktop/video_binary/binary " + str + ".avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 15, cv::Size(new_width, new_height));
     cv::Mat img_real_for_video;
     cv::Mat img_binary_for_video;
     // Loop until 'q' is pressed
@@ -166,7 +175,7 @@ int main(int argc, char **argv) {
             cv::putText(img_binary, fps_str, cv::Point(20, 20), cv::FONT_HERSHEY_PLAIN, 1, red, 1);
 
             //show img
-            cv::imshow("Real", image_ocv);
+            // cv::imshow("Real", image_ocv);
             // cv::imshow("Depth", img_binary);
 
             // save video
