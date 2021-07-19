@@ -19,6 +19,7 @@ SET(EXECUTABLE_OUTPUT_PATH ".")
 find_package(ZED 3 REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(CUDA ${ZED_CUDA_VERSION} EXACT REQUIRED)
+find_package(PythonLibs REQUIRED)
 
 IF(NOT WIN32)
     add_definitions(-Wno-format-extra-args)
@@ -29,6 +30,7 @@ include_directories(${CUDA_INCLUDE_DIRS})
 include_directories(${ZED_INCLUDE_DIRS})
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${PYTHON_INCLUDE_DIRS})
 
 link_directories(${ZED_LIBRARY_DIR})
 link_directories(${OpenCV_LIBRARY_DIRS})
@@ -47,4 +49,4 @@ else()
 endif()
 
 
-TARGET_LINK_LIBRARIES(Object_Recognition ${ZED_LIBS} ${OpenCV_LIBRARIES})
+TARGET_LINK_LIBRARIES(Object_Recognition ${ZED_LIBS} ${OpenCV_LIBRARIES} ${PYTHON_LIBRARIES})

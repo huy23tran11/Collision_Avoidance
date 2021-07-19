@@ -11,7 +11,7 @@
 #include <opencv2/opencv.hpp>
 // OpenCV dep
 #include <opencv2/cvconfig.h>
-// #include <python3.6m/Python.h>
+#include <python3.6m/Python.h>
 #include <ctime>
 
 using namespace std;
@@ -30,39 +30,45 @@ void manuver(cv::Mat img, bool is_space, bool is_matched, cv::Rect &templ_rect, 
 
 
 //global variables setting up template for opening space
-
+// Python interpreter
+PyObject *pName, *pMod, *pDict;
+PyObject *pFunc, *pArgs, *pVal;
 int main(int argc, char **argv) {
     // Python interpreter
-	// PyObject *pName, *pMod, *pDict;
-	// Py_Initialize();
-    // PyRun_SimpleString("import sys");
-    // PyRun_SimpleString("sys.path.append('/home/nguyen/Visual-Studio-Workspace/Collision_Avoidance/src')");
-    // pName = PyUnicode_FromString("PyMovement");
-    // pMod = PyImport_Import(pName);
-    // if (pMod == NULL) {
-    //     PyErr_Print();
-    //     std::exit(1);
-    // }
-    // pDict = PyModule_GetDict(pMod);
-    // PyObject *pFunc, *pArgs, *pVal;
-    // pArgs = NULL;
+	Py_Initialize();
+    PyRun_SimpleString("import sys");
+    PyRun_SimpleString("sys.path.append('/home/nvidia/Visual_Code_Workspace/Collision_Avoidance/src')");
+    pName = PyUnicode_FromString("PyMovement");
+    pMod = PyImport_Import(pName);
+    if (pMod == NULL) {
+        PyErr_Print();
+        std::exit(1);
+    }
+    pDict = PyModule_GetDict(pMod);
+    pArgs = NULL;
 
-    // //Connection
-    // pFunc = PyDict_GetItemString(pDict, "connectionFunc");  //PyObject to call the connection function
-    // PyObject_CallObject(pFunc, pArgs);  //Call the connection function from the Python Script
+    //Connection
+    pFunc = PyDict_GetItemString(pDict, "connectionFunc");  //PyObject to call the connection function
+    PyObject_CallObject(pFunc, pArgs);  //Call the connection function from the Python Script
 
-	// //Arm
-	// pFunc = PyDict_GetItemString(pDict, "arm");  //PyObject to call the connection function
-    // PyObject_CallObject(pFunc, pArgs);  //Call the connection function from the Python Script
-	// // cin.ignore();
+    //set Home Location
+    pFunc = PyDict_GetItemString(pDict, "setLocation");  //PyObject to call the connection function
+    PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
 
-	// //Takeoff
-	// pFunc = PyDict_GetItemString(pDict, "takeoff");
-	// pArgs = PyTuple_New(1);             //Create a PyObject for the arguments
-	// pVal = PyFloat_FromDouble(6.5); //Set the value of pVal to the altitude
-	// PyTuple_SetItem(pArgs, 0, pVal);   //Set the first parameter to the altitude
-	// PyObject_CallObject(pFunc, pArgs);
-    // std::exit(1);
+	//Arm_and_Takeoff
+	pFunc = PyDict_GetItemString(pDict, "arm_and_takeoff");
+	pArgs = PyTuple_New(1);             //Create a PyObject for the arguments
+	pVal = PyFloat_FromDouble(10); //Set the value of pVal to the altitude
+	PyTuple_SetItem(pArgs, 0, pVal);   //Set the first parameter to the altitude
+	PyObject_CallObject(pFunc, pArgs);
+
+    //set Tartget location
+    pFunc = PyDict_GetItemString(pDict, "setTargetLoc");  //PyObject to call the connection function
+    PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
+
+    // //go to Tartget location
+    pFunc = PyDict_GetItemString(pDict, "goToTargetLoc");  //PyObject to call the connection function
+    PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
 
     // imtermediate img and point
     cv::Rect templ_rect;
@@ -89,7 +95,7 @@ int main(int argc, char **argv) {
     init_params.depth_mode = DEPTH_MODE::PERFORMANCE;
     init_params.coordinate_units = UNIT::METER;
     init_params.camera_fps = 100;
-    init_params.depth_minimum_distance = 0.5;
+    init_params.depth_minimum_distance = 4;
     init_params.depth_maximum_distance = 5;
     if (argc > 1) init_params.input.setFromSVOFile(argv[1]);
 
@@ -200,7 +206,7 @@ int main(int argc, char **argv) {
     video_real.release();
     depth_image_zed_gpu.free();
     zed.close();
-    // Py_Finalize();
+    Py_Finalize();
     return 0;
 }
 
