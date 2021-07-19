@@ -61,12 +61,13 @@ int main(int argc, char **argv) {
 	pVal = PyFloat_FromDouble(10); //Set the value of pVal to the altitude
 	PyTuple_SetItem(pArgs, 0, pVal);   //Set the first parameter to the altitude
 	PyObject_CallObject(pFunc, pArgs);
+    pArgs = NULL;
 
     //set Tartget location
     pFunc = PyDict_GetItemString(pDict, "setTargetLoc");  //PyObject to call the connection function
     PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
 
-    // //go to Tartget location
+    //go to Tartget location
     pFunc = PyDict_GetItemString(pDict, "goToTargetLoc");  //PyObject to call the connection function
     PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
 

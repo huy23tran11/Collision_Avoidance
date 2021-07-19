@@ -76,6 +76,7 @@ def setTargetLoc():
     global targetLoc
     targetLoc = get_location_metres(vehicle.location.global_relative_frame, 100, 100)
     print("Target Location: ", targetLoc.lat, " (lat), ", targetLoc.lon, " (long)")
+    time.sleep(1)
         
 def stop():
     global ACTION
@@ -104,12 +105,15 @@ def stop():
     vehicle.send_mavlink(msg)
     
 def goToTargetLoc():
+    global targetLoc
+    print("Running")
     global ACTION
     global STATUS
     ACTION = "GOING TO TARGET"
     STATUS = "GOING TO TARGET"
     printStatus()
     vehicle.simple_goto(targetLoc, 2, 2)
+    print("going to target loc")
         
 def get_location_metres(original_location, dNorth, dEast):
     """
