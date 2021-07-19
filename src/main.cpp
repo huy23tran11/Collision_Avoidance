@@ -70,6 +70,7 @@ int main(int argc, char **argv) {
     pFunc = PyDict_GetItemString(pDict, "goToTargetLoc");  //PyObject to call the connection function
     PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
 
+    exit(1);
     // imtermediate img and point
     cv::Rect templ_rect;
     cv::Rect center_rect;

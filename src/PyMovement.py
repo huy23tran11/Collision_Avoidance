@@ -28,7 +28,7 @@ def on_press(key):
     if k in ['t']:  # keys of interest
         arm_and_takeoff(FLIGHT_ALT)
     if k in ['g']:  # keys of interest
-        goto(targetLocation)
+        goToTargetLoc()
     if k in ['i']:  # keys of interest
         printStatus()
     if k in ['1']:  # keys of interest
@@ -181,7 +181,7 @@ def goto_position_target_body_ned(north, east, down):
         0, 0)    # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink) 
     # send command to vehicle
     vehicle.send_mavlink(msg)
-    set_roi(targetLocation)
+    set_roi(targetLoc)
 
     
 def set_roi(location):
@@ -208,11 +208,11 @@ def setLocation():
     homeLocation = vehicle.location.global_relative_frame
     print("Home Location: ", homeLocation.lat, " (lat), ", homeLocation.lon, " (long)")
 
-connectionFunc()
-setLocation()
-arm_and_takeoff(10)
-setTargetLoc()
-goToTargetLoc()
+# connectionFunc()
+# setLocation()
+# arm_and_takeoff(10)
+# setTargetLoc()
+# goToTargetLoc()
 # connection_string = 'tcp:192.168.86.182:5763'
 # vehicle = connect(connection_string, wait_ready=True)
 # homeLocation = vehicle.location.global_relative_frame
