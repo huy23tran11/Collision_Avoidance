@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
     init_params.coordinate_units = UNIT::METER;
     init_params.camera_fps = 100;
     init_params.depth_minimum_distance = 0.5;
-    init_params.depth_maximum_distance = 3;
+    init_params.depth_maximum_distance = 5;
     if (argc > 1) init_params.input.setFromSVOFile(argv[1]);
 
     // Open the camera
@@ -108,6 +108,7 @@ int main(int argc, char **argv) {
 
     // Prepare new image size to retrieve half-resolution images
     Resolution image_size = zed.getCameraInformation().camera_resolution;
+    cout << image_size.height << " " << image_size.width << endl;
     int new_width = image_size.width ;
     int new_height = image_size.height ;
 
@@ -162,19 +163,17 @@ int main(int argc, char **argv) {
             manuver(img_binary, is_space, is_matched, templ_rect, center_rect); // guidance on binary img
 
             // save img
-            time (&rawtime);
-            timeinfo = localtime(&rawtime);
-            strftime(buffer,sizeof(buffer),"%d-%m-%Y %H:%M:%S",timeinfo);
-            std::string str(buffer);
-
-            string img_number = std::to_string(img_counter);
-            final_real_img = "/home/nvidia/Desktop/img_real/real_img_" + str + ".jpg";
-            final_binary_img = "/home/nvidia/Desktop/img_binary/binary_img_" + str + ".jpg";
-            if(frame_counter == 0) {
-                cv::imwrite(final_real_img, image_ocv);
-                cv::imwrite(final_binary_img, img_binary);
-                img_counter++;
-            }
+            // time (&rawtime);
+            // timeinfo = localtime(&rawtime);
+            // strftime(buffer,sizeof(buffer),"%d-%m-%Y %H:%M:%S",timeinfo);
+            // std::string str(buffer);
+            // final_real_img = "/home/nvidia/Desktop/img_real/real_img_" + str + ".jpg";
+            // final_binary_img = "/home/nvidia/Desktop/img_binary/binary_img_" + str + ".jpg";
+            // if(frame_counter == 0) {
+            //     cv::imwrite(final_real_img, image_ocv);
+            //     cv::imwrite(final_binary_img, img_binary);
+            //     img_counter++;
+            // }
 
             // FPS counter:
             fps_counter(fps, frame_counter, final_time, initial_time);
@@ -183,14 +182,14 @@ int main(int argc, char **argv) {
             cv::putText(img_binary, fps_str, cv::Point(20, 20), cv::FONT_HERSHEY_PLAIN, 1, red, 1);
 
             //show img
-            // cv::imshow("Real", depth_image_ocv);
-            // cv::imshow("Depth", img_binary);
+            cv::imshow("Real", image_ocv);
+            cv::imshow("Depth", img_binary);
 
             // save video
-            cv::cvtColor(image_ocv, img_real_for_video, cv::COLOR_RGB2BGR);
-            cv::cvtColor(img_binary, img_binary_for_video, cv::COLOR_RGB2BGR);
-            video_real.write(img_real_for_video);
-            video_binary.write(img_binary_for_video);
+            // cv::cvtColor(image_ocv, img_real_for_video, cv::COLOR_RGB2BGR);
+            // cv::cvtColor(img_binary, img_binary_for_video, cv::COLOR_RGB2BGR);
+            // video_real.write(img_real_for_video);
+            // video_binary.write(img_binary_for_video);
         }
     key = cv::waitKey(1);
     if (key == 'q') {break;}
@@ -263,8 +262,8 @@ bool finding_best_space(cv::Mat &img_binary, cv::Rect &templ_rect, cv::Rect &cen
     cv::Mat img_bianry_cropped; // cropped img to only detect horizontal regions;
     int frame_w = img_binary.cols;
     int frame_h = img_binary.rows;
-    int templ_w = frame_w / 4;
-    int templ_h = frame_h / 4;
+    int templ_w = 160; // dimension of the drone at 5 m with 20% bigger
+    int templ_h = 66; // dimension of the drone at 5 m with 20% bigger
     cv::Mat img_result_templ_matching;
     // double min_val, max_val;
     // cv:: Point min_loc, max_loc;
