@@ -11,6 +11,7 @@ MODE = "NONE"
 vehicle = None
 targetLoc = None
 homeLocation = None
+droneSpeed = 1
 
 def printStatus():
     global MODE
@@ -117,7 +118,7 @@ def goToTargetLoc():
     ACTION = "GOING TO TARGET"
     STATUS = "GOING TO TARGET"
     printStatus()
-    vehicle.simple_goto(targetLoc, 1, 1)
+    vehicle.simple_goto(targetLoc, droneSpeed, droneSpeed)
     print("going to target loc")
     time.sleep(1) # sleep for the interface to work  if not sleep the function was called in cpp but not executed somehow 
 
