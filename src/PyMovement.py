@@ -40,7 +40,7 @@ def arm_and_takeoff(aTargetAltitude):
     global ACTION
     global STATUS
     ACTION = "Auto Takeoff"
-    STATUS = "Attempting Auto Take Off in 10 seconds"
+    STATUS = "Attempting Auto Take Off"
     printStatus()
     time.sleep(10)
     
@@ -59,6 +59,9 @@ def arm_and_takeoff(aTargetAltitude):
         printStatus()
         time.sleep(3)
 
+    STATUS = "Attempting Auto Take Off in 8 seconds"
+    printStatus()
+    time.sleep(8) # not working because armming too long
     STATUS = "Taking off!"
     printStatus()
     vehicle.simple_takeoff(aTargetAltitude)
@@ -214,6 +217,7 @@ def set_roi(location):
 def connectionFunc():
     global vehicle
     connection_string = 'tcp:192.168.86.182:5763'
+    # connection_string = '/dev/ttyACM0, 57600'
     print("Connecting to vehicle on: %s" % (connection_string,))
     vehicle = connect(connection_string, wait_ready=True)
 
