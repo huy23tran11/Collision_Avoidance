@@ -10,6 +10,7 @@ STATUS = "Initializing Program"
 MODE = "NONE"
 vehicle = None
 targetLoc = None
+homeLocation = None
 
 def printStatus():
     global MODE
@@ -36,7 +37,6 @@ def on_press(key):
         
         
 def arm_and_takeoff(aTargetAltitude):
-    global targetLocation
     global ACTION
     global STATUS
     ACTION = "Auto Takeoff"
@@ -74,9 +74,10 @@ def arm_and_takeoff(aTargetAltitude):
 
 def setTargetLoc():
     global targetLoc
-    targetLoc = get_location_metres(vehicle.location.global_relative_frame, 100, 100)
+    targetLoc = LocationGlobalRelative(34.043349, -117.811809, FLIGHT_ALT)
+    # targetLoc = get_location_metres(vehicle.location.global_relative_frame, 100, 100)
     print("Target Location: ", targetLoc.lat, " (lat), ", targetLoc.lon, " (long)")
-    time.sleep(1)
+    time.sleep(1) # sleep for the interface to work  if not sleep the function was called in cpp but not executed somehow 
         
 def stop():
     global ACTION
@@ -103,6 +104,7 @@ def stop():
     STATUS = "STOPPING"
     printStatus()
     vehicle.send_mavlink(msg)
+    time.sleep(1) # sleep for the interface to work  if not sleep the function was called in cpp but not executed somehow 
     
 def goToTargetLoc():
     global targetLoc
@@ -112,8 +114,10 @@ def goToTargetLoc():
     ACTION = "GOING TO TARGET"
     STATUS = "GOING TO TARGET"
     printStatus()
-    vehicle.simple_goto(targetLoc, 2, 2)
+    vehicle.simple_goto(targetLoc, 1, 1)
     print("going to target loc")
+    time.sleep(1) # sleep for the interface to work  if not sleep the function was called in cpp but not executed somehow 
+
         
 def get_location_metres(original_location, dNorth, dEast):
     """
@@ -187,7 +191,12 @@ def goto_position_target_body_ned(north, east, down):
     vehicle.send_mavlink(msg)
     set_roi(targetLoc)
 
-    
+def slide_left(): #slide left 0.1 m at a time
+    goto_position_target_body_ned(0, -0.5, 0); 
+
+def slide_right(): #slide left 0.1 m at a time
+    goto_position_target_body_ned(0, 0.5, 0); 
+
 def set_roi(location):
     # create the MAV_CMD_DO_SET_ROI command
     msg = vehicle.message_factory.command_long_encode(
@@ -209,6 +218,7 @@ def connectionFunc():
     vehicle = connect(connection_string, wait_ready=True)
 
 def setLocation():
+    global homeLocation
     homeLocation = vehicle.location.global_relative_frame
     print("Home Location: ", homeLocation.lat, " (lat), ", homeLocation.lon, " (long)")
 

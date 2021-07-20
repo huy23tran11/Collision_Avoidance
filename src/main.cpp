@@ -26,7 +26,8 @@ void finding_all_avaiable_space(cv::Mat img_result_templ_matching, vector<cv::Po
 void fps_counter(int &fps, int &frame_counter, int &final_time, int &initial_time);// fps counter show on screen
 int finding_closest_space_to_center(vector<cv::Point> &space_loc_tf, cv::Point center_frame_tf);
 bool check_rect_matched(cv::Rect templ_rect, cv::Rect center_rect);
-void manuver(cv::Mat img, bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect);
+void manuver(bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect, bool &is_moving_to_target);
+void draw_rect(cv::Mat img, bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect);
 
 
 //global variables setting up template for opening space
@@ -70,8 +71,10 @@ int main(int argc, char **argv) {
     //go to Tartget location
     pFunc = PyDict_GetItemString(pDict, "goToTargetLoc");  //PyObject to call the connection function
     PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
+    bool is_moving_to_target = true; // moving flag
 
-    exit(1);
+    // exit(1);
+    // while(1);
     // imtermediate img and point
     cv::Rect templ_rect;
     cv::Rect center_rect;
@@ -116,7 +119,6 @@ int main(int argc, char **argv) {
 
     // Prepare new image size to retrieve half-resolution images
     Resolution image_size = zed.getCameraInformation().camera_resolution;
-    cout << image_size.height << " " << image_size.width << endl;
     int new_width = image_size.width ;
     int new_height = image_size.height ;
 
@@ -167,8 +169,11 @@ int main(int argc, char **argv) {
             cv::rectangle(img_binary, center_rect.tl(), center_rect.br(), red, 2); // binary img
 
             is_matched = check_rect_matched(templ_rect, center_rect);
-            manuver(image_ocv, is_space, is_matched, templ_rect, center_rect); // guidance on real img
-            manuver(img_binary, is_space, is_matched, templ_rect, center_rect); // guidance on binary img
+
+            draw_rect(img_binary, is_space, is_matched, templ_rect, center_rect);
+            draw_rect(image_ocv, is_space, is_matched, templ_rect, center_rect);
+
+            manuver(is_space, is_matched, templ_rect, center_rect, is_moving_to_target); // guidance on binary img
 
             // save img
             // time (&rawtime);
@@ -350,7 +355,40 @@ void fps_counter(int &fps, int &frame_counter, int &final_time, int &initial_tim
     }
 }
 
-void manuver(cv::Mat img, bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect) {
+void manuver(bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect, bool &is_moving_to_target) {
+    cv::Scalar red = cv::Scalar(0, 0, 256);
+    cv::Scalar blue = cv::Scalar(256, 0, 0);
+    if(!is_space) {
+        // cv::putText(img, "STOP", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, red, 3);
+        if(is_moving_to_target) {
+            pFunc = PyDict_GetItemString(pDict, "stop");  //PyObject to call the connection function
+            PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
+            is_moving_to_target = false;
+        }
+    }
+    else if(is_matched) {
+        // cv::putText(img, "go to location", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, blue, 3);
+        if(!is_moving_to_target) {
+            pFunc = PyDict_GetItemString(pDict, "goToTargetLoc");  //PyObject to call the connection function
+            PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
+            is_moving_to_target = true;
+        }
+    } else if(!is_matched) {
+        if(templ_rect.x - center_rect.x > 0) {
+            // cv::putText(img, " slide right", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, blue, 3);
+            pFunc = PyDict_GetItemString(pDict, "slide_right");  //PyObject to call the connection function
+            PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
+        } else {
+            // cv::putText(img, " slide left", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, blue, 3);
+            pFunc = PyDict_GetItemString(pDict, "slide_left");  //PyObject to call the connection function
+            PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
+        }
+    } else {
+        // cv::putText(img, "STOP, cannot figure what to do", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, red, 3);
+    }
+}
+
+void draw_rect(cv::Mat img, bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect) {
     cv::Scalar red = cv::Scalar(0, 0, 256);
     cv::Scalar blue = cv::Scalar(256, 0, 0);
     if(!is_space) {
