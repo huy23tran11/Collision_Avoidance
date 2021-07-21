@@ -1,5 +1,5 @@
 /***********************************************************************************************
- ** This sample collision avoidance algothmism how to use the ZED SDK with OpenCV.                              **
+ ** This sample collision avoidance algothmism how to use the ZED SDK with OpenCV.            **
  ** Depth and images are captured with the ZED SDK, converted to OpenCV format and displayed. **
  ***********************************************************************************************/
 #include <iostream>
@@ -69,9 +69,9 @@ int main(int argc, char **argv) {
     PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
 
     //go to Tartget location
-    pFunc = PyDict_GetItemString(pDict, "goToTargetLoc");  //PyObject to call the connection function
-    PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
-    bool is_moving_to_target = true; // moving flag
+    // pFunc = PyDict_GetItemString(pDict, "goToTargetLoc");  //PyObject to call the connection function
+    // PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
+    bool is_moving_to_target = false; // moving flag
 
     // exit(1);
     // while(1);
@@ -185,7 +185,6 @@ int main(int argc, char **argv) {
             // if(frame_counter == 0) {
             //     cv::imwrite(final_real_img, image_ocv);
             //     cv::imwrite(final_binary_img, img_binary);
-            //     img_counter++;
             // }
 
             // FPS counter:
@@ -275,12 +274,9 @@ bool finding_best_space(cv::Mat &img_binary, cv::Rect &templ_rect, cv::Rect &cen
     cv::Mat img_bianry_cropped; // cropped img to only detect horizontal regions;
     int frame_w = img_binary.cols;
     int frame_h = img_binary.rows;
-    int templ_w = 160; // dimension of the drone at 5 m with 20% bigger
-    int templ_h = 66; // dimension of the drone at 5 m with 20% bigger
+    int templ_w = 200; // dimension of the drone at 5 m with 50% bigger 133 / 100 * 150
+    int templ_h = 83; // dimension of the drone at 5 m with 50% bigger 55 / 100 * 150
     cv::Mat img_result_templ_matching;
-    // double min_val, max_val;
-    // cv:: Point min_loc, max_loc;
-
     cv::Mat img_binary_formatted;
     cv::Mat templ(templ_h, templ_w, CV_8U, cv::Scalar(0, 0, 0));
     cv::Point center_frame_tf;
@@ -359,7 +355,6 @@ void manuver(bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &cen
     cv::Scalar red = cv::Scalar(0, 0, 256);
     cv::Scalar blue = cv::Scalar(256, 0, 0);
     if(!is_space) {
-        // cv::putText(img, "STOP", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, red, 3);
         if(is_moving_to_target) {
             pFunc = PyDict_GetItemString(pDict, "stop");  //PyObject to call the connection function
             PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
@@ -367,7 +362,6 @@ void manuver(bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &cen
         }
     }
     else if(is_matched) {
-        // cv::putText(img, "go to location", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, blue, 3);
         if(!is_moving_to_target) {
             pFunc = PyDict_GetItemString(pDict, "goToTargetLoc");  //PyObject to call the connection function
             PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
@@ -375,16 +369,20 @@ void manuver(bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &cen
         }
     } else if(!is_matched) {
         if(templ_rect.x - center_rect.x > 0) {
-            // cv::putText(img, " slide right", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, blue, 3);
             pFunc = PyDict_GetItemString(pDict, "slide_right");  //PyObject to call the connection function
             PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
+            is_moving_to_target = false;
         } else {
-            // cv::putText(img, " slide left", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, blue, 3);
             pFunc = PyDict_GetItemString(pDict, "slide_left");  //PyObject to call the connection function
             PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
+            is_moving_to_target = false;
         }
     } else {
-        // cv::putText(img, "STOP, cannot figure what to do", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, red, 3);
+        if(is_moving_to_target) {
+            pFunc = PyDict_GetItemString(pDict, "stop");  //PyObject to call the connection function
+            PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
+            is_moving_to_target = false;
+        }
     }
 }
 
@@ -393,14 +391,17 @@ void draw_rect(cv::Mat img, bool is_space, bool is_matched, cv::Rect &templ_rect
     cv::Scalar blue = cv::Scalar(256, 0, 0);
     if(!is_space) {
         cv::putText(img, "STOP", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, red, 3);
+        cv::putText(img, "Obstacle Detected", cv::Point(50, 300), cv::FONT_HERSHEY_PLAIN, 4, red, 3);
     }
     else if(is_matched) {
-        cv::putText(img, "go to location", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, blue, 3);
+        cv::putText(img, "go to location", cv::Point(100, 50), cv::FONT_HERSHEY_PLAIN, 4, blue, 3);
     } else if(!is_matched) {
         if(templ_rect.x - center_rect.x > 0) {
-            cv::putText(img, " slide right", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, blue, 3);
+            cv::putText(img, "slide right", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, blue, 3);
+            cv::putText(img, "Obstacle Detected", cv::Point(50, 300), cv::FONT_HERSHEY_PLAIN, 4, red, 3);
         } else {
-            cv::putText(img, " slide left", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, blue, 3);
+            cv::putText(img, "slide left", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, blue, 3);
+            cv::putText(img, "Obstacle Detected", cv::Point(50, 300), cv::FONT_HERSHEY_PLAIN, 4, red, 3);
         }
     } else {
         cv::putText(img, "STOP, cannot figure what to do", cv::Point(200, 50), cv::FONT_HERSHEY_PLAIN, 4, red, 3);

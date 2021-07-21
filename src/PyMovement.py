@@ -4,21 +4,23 @@ from pymavlink import mavutil # Needed for command message definitions
 import time
 import math
 
-FLIGHT_ALT = 10
+FLIGHT_ALT = 9
+connection_string = 'tcp:192.168.86.182:5763'
+# connection_string = '/dev/ttyACM0, 57600'
+droneSpeed = 0.5
 ACTION = "NONE"
 STATUS = "Initializing Program"
 MODE = "NONE"
 vehicle = None
 targetLoc = None
 homeLocation = None
-droneSpeed = 1
 
 def printStatus():
     global MODE
     MODE = vehicle.mode.name
     print(MODE, ACTION, STATUS)
 
-def on_press(key):
+def on_press(key): # for testing without sitl
     if key == keyboard.Key.esc:
         return False  # stop listener
     try:
@@ -60,9 +62,9 @@ def arm_and_takeoff(aTargetAltitude):
         printStatus()
         time.sleep(3)
 
-    STATUS = "Attempting Auto Take Off in 8 seconds"
+    STATUS = "Attempting Auto Take Off in 5 seconds"
     printStatus()
-    time.sleep(8) # not working because armming too long
+    time.sleep(5) # not working because armming too long
     STATUS = "Taking off!"
     printStatus()
     vehicle.simple_takeoff(aTargetAltitude)
@@ -186,20 +188,58 @@ def goto_position_target_body_ned(north, east, down):
         0,       # time_boot_ms (not used)
         0, 0,    # target system, target component
         mavutil.mavlink.MAV_FRAME_BODY_NED, # frame
-        0b0000111111111000, # type_mask (only positions enabled)
+        # 0b0000111111000000, # type_mask (only positions enabled)
+        0b0000111111111000, # type_mask (only positions enabled) #Initial mask
+        # 0b0000111111000111, # type_mask (only speeds enabled)
+
         north, east, down, # x, y, z positions (or North, East, Down in the MAV_FRAME_BODY_NED frame
-        0, 0, 0, # x, y, z velocity in m/s  (not used)
+        # 0, 0.2, 0, # x, y, z velocity in m/s  (not used) # slide right or left, not going to target point 
+        # 1, -1, 0, # x, y, z velocity in m/s  (not used) # slide right or left then still going to the target point 
+        0, 0, 0, # x, y, z velocity in m/s  (not used) # Inital set up
         0, 0, 0, # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
         0, 0)    # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink) 
     # send command to vehicle
     vehicle.send_mavlink(msg)
     set_roi(targetLoc)
 
-def slide_left(): #slide left 0.1 m at a time
-    goto_position_target_body_ned(0, -0.5, 0); 
+def goto_velocity_target_body_ned(velocity):
+    """	
+    Send SET_POSITION_TARGET_LOCAL_NED command to request the vehicle fly to a specified 
+    location in the North, East, Down frame.
 
-def slide_right(): #slide left 0.1 m at a time
-    goto_position_target_body_ned(0, 0.5, 0); 
+    It is important to remember that in this frame, positive altitudes are entered as negative 
+    "Down" values. So if down is "10", this will be 10 metres below the home altitude.
+
+    Starting from AC3.3 the method respects the frame setting. Prior to that the frame was
+    ignored. For more information see: 
+    http://dev.ardupilot.com/wiki/copter-commands-in-guided-mode/#set_position_target_local_ned
+
+    See the above link for information on the type_mask (0=enable, 1=ignore). 
+    At time of writing, acceleration and yaw bits are ignored.
+
+    """
+    msg = vehicle.message_factory.set_position_target_local_ned_encode(
+        0,       # time_boot_ms (not used)
+        0, 0,    # target system, target component
+        mavutil.mavlink.MAV_FRAME_BODY_NED, # frame
+        0b0000111111000000, # type_mask (only positions enabled)
+
+        0, 0, 0, # x, y, z positions (or North, East, Down in the MAV_FRAME_BODY_NED frame
+        0, velocity, 0, # x, y, z velocity in m/s  (not used) # slide right or left then not going to the target point 
+        # droneSpeed, velocity, 0, # x, y, z velocity in m/s  (not used) # slide right or left then still going to the target point 
+        0, 0, 0, # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
+        0, 0)    # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink) 
+    # send command to vehicle
+    vehicle.send_mavlink(msg)
+    set_roi(targetLoc)
+
+def slide_left():
+    goto_velocity_target_body_ned(-1);
+    print("Go Left")
+
+def slide_right():
+    goto_velocity_target_body_ned(1);
+    print("Go Right")
 
 def set_roi(location):
     # create the MAV_CMD_DO_SET_ROI command
@@ -217,8 +257,6 @@ def set_roi(location):
 
 def connectionFunc():
     global vehicle
-    connection_string = 'tcp:192.168.86.182:5763'
-    # connection_string = '/dev/ttyACM0, 57600'
     print("Connecting to vehicle on: %s" % (connection_string,))
     vehicle = connect(connection_string, wait_ready=True)
 
