@@ -4,10 +4,11 @@ from pymavlink import mavutil # Needed for command message definitions
 import time
 import math
 
-FLIGHT_ALT = 9
+FLIGHT_ALT = 5
+droneSpeed = 1
 connection_string = 'tcp:192.168.86.182:5763'
 # connection_string = '/dev/ttyACM0, 57600'
-droneSpeed = 0.5
+aTargetAltitude = FLIGHT_ALT
 ACTION = "NONE"
 STATUS = "Initializing Program"
 MODE = "NONE"
@@ -39,7 +40,8 @@ def on_press(key): # for testing without sitl
         goto_position_target_body_ned(0, 10, 0)
         
         
-def arm_and_takeoff(aTargetAltitude):
+def arm_and_takeoff():
+    global aTargetAltitude
     global ACTION
     global STATUS
     ACTION = "Auto Takeoff"
@@ -267,7 +269,7 @@ def setLocation():
 
 # connectionFunc()
 # setLocation()
-# arm_and_takeoff(10)
+# arm_and_takeoff(5)
 # setTargetLoc()
 # goToTargetLoc()
 # connection_string = 'tcp:192.168.86.182:5763'

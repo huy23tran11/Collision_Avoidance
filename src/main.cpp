@@ -21,22 +21,20 @@ using namespace sl;
 
 cv::Mat slMat2cvMat(Mat& input);
 cv::cuda::GpuMat slMat2cvMatGPU(Mat& input);
-bool is_masked_img();// this function will masked every 10% of the fps frame by a bitwise_or then it will return true if it complete used to filter out noise
+bool is_masked_img();// this function will masked every 10% of the fps frame by a bitwise_or then it will return true if it complete used to filter out noise, NOT USED
 bool finding_best_space(cv::Mat &img_binary, cv::Rect &templ_rect, cv::Rect &center_Rect); // find best space that closet to the center then return true, return false if there is no space at all
 void finding_all_avaiable_space(cv::Mat img_result_templ_matching, vector<cv::Point> &space_loc_tf); // find all avaible space in a vector called in the finding_best_space() func
 void fps_counter(int &fps, int &frame_counter, int &final_time, int &initial_time);// fps counter show on screen
 int finding_closest_space_to_center(vector<cv::Point> &space_loc_tf, cv::Point center_frame_tf); //from all avaible space, find the closet space to the center then return the index of that space rectangle in the vector
 bool check_rect_matched(cv::Rect templ_rect, cv::Rect center_rect); // check if the center rectangle and the best rectangle without obstacle match with 5 pixel error due to noise
 void manuver(bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect, bool &is_moving_to_target); //calling python function to manuver the plane
-void draw_rect(cv::Mat img, bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect); //draw 2 rectangle on the img for video and img saving
+void put_text(cv::Mat img, bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect); // put guidance text on img
 
 
 // Python interpreter
 PyObject *pName, *pMod, *pDict;
 PyObject *pFunc, *pArgs, *pVal;
 int main(int argc, char **argv) {
-    // Alt
-    int altitude = 10;
     // Python interpreter
 	Py_Initialize();
     PyRun_SimpleString("import sys");
@@ -59,12 +57,8 @@ int main(int argc, char **argv) {
     PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
 
 	//Arm_and_Takeoff
-	pFunc = PyDict_GetItemString(pDict, "arm_and_takeoff");
-	pArgs = PyTuple_New(1);             //Create a PyObject for the arguments
-	pVal = PyFloat_FromDouble(altitude); //Set the value of pVal to the altitude
-	PyTuple_SetItem(pArgs, 0, pVal);   //Set the first parameter to the altitude
-	PyObject_CallObject(pFunc, pArgs);
-    pArgs = NULL; // reset the arguments for calling next function
+    pFunc = PyDict_GetItemString(pDict, "arm_and_takeoff");  //PyObject to call the setLocation function
+    PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
 
     //set Tartget location
     pFunc = PyDict_GetItemString(pDict, "setTargetLoc");  //PyObject to call the setTargetLoc function
@@ -73,7 +67,7 @@ int main(int argc, char **argv) {
     //go to Tartget location
     // pFunc = PyDict_GetItemString(pDict, "goToTargetLoc");  //PyObject to call the goToTargetLoc function
     // PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
-    bool is_moving_to_target = false; // moving flag
+    bool is_moving_to_target = false; // moving flag, if call goToTargetLoc before camera is on turn this to true
 
 
     // imtermediate img and point
@@ -169,8 +163,8 @@ int main(int argc, char **argv) {
 
             is_matched = check_rect_matched(templ_rect, center_rect);
 
-            draw_rect(img_binary, is_space, is_matched, templ_rect, center_rect);
-            draw_rect(image_ocv, is_space, is_matched, templ_rect, center_rect);
+            put_text(img_binary, is_space, is_matched, templ_rect, center_rect);
+            put_text(image_ocv, is_space, is_matched, templ_rect, center_rect);
 
             manuver(is_space, is_matched, templ_rect, center_rect, is_moving_to_target); // guidance on binary img
 
@@ -367,7 +361,7 @@ void manuver(bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &cen
     }
 }
 
-void draw_rect(cv::Mat img, bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect) {
+void put_text(cv::Mat img, bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect) {
     cv::Scalar red = cv::Scalar(0, 0, 256);
     cv::Scalar blue = cv::Scalar(256, 0, 0);
     if(!is_space) {
