@@ -1,6 +1,6 @@
 /***********************************************************************************************
- ** This sample collision avoidance algothmism how to use the ZED SDK with OpenCV.            **
- ** Depth and images are captured with the ZED SDK, converted to OpenCV format and displayed. **
+ ** This sample collision avoidance algorithm using the ZED SDK with OpenCV.                 **
+ ** Depth and images are captured with the ZED SDK, processed by OpenCV and manuver drones.  **
  ***********************************************************************************************/
 #include <iostream>
 // time for fps
@@ -11,7 +11,9 @@
 #include <opencv2/opencv.hpp>
 // OpenCV dep
 #include <opencv2/cvconfig.h>
+// python interfaces
 #include <python3.6m/Python.h>
+// time for video and img
 #include <ctime>
 
 using namespace std;
@@ -19,26 +21,26 @@ using namespace sl;
 
 cv::Mat slMat2cvMat(Mat& input);
 cv::cuda::GpuMat slMat2cvMatGPU(Mat& input);
-void saveGrayScaleImage(Camera& zed, std::string filename);
-bool is_masked_img();
-bool finding_best_space(cv::Mat &img_binary, cv::Rect &templ_rect, cv::Rect &center_Rect);
-void finding_all_avaiable_space(cv::Mat img_result_templ_matching, vector<cv::Point> &space_loc_tf);
+bool is_masked_img();// this function will masked every 10% of the fps frame by a bitwise_or then it will return true if it complete used to filter out noise
+bool finding_best_space(cv::Mat &img_binary, cv::Rect &templ_rect, cv::Rect &center_Rect); // find best space that closet to the center then return true, return false if there is no space at all
+void finding_all_avaiable_space(cv::Mat img_result_templ_matching, vector<cv::Point> &space_loc_tf); // find all avaible space in a vector called in the finding_best_space() func
 void fps_counter(int &fps, int &frame_counter, int &final_time, int &initial_time);// fps counter show on screen
-int finding_closest_space_to_center(vector<cv::Point> &space_loc_tf, cv::Point center_frame_tf);
-bool check_rect_matched(cv::Rect templ_rect, cv::Rect center_rect);
-void manuver(bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect, bool &is_moving_to_target);
-void draw_rect(cv::Mat img, bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect);
+int finding_closest_space_to_center(vector<cv::Point> &space_loc_tf, cv::Point center_frame_tf); //from all avaible space, find the closet space to the center then return the index of that space rectangle in the vector
+bool check_rect_matched(cv::Rect templ_rect, cv::Rect center_rect); // check if the center rectangle and the best rectangle without obstacle match with 5 pixel error due to noise
+void manuver(bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect, bool &is_moving_to_target); //calling python function to manuver the plane
+void draw_rect(cv::Mat img, bool is_space, bool is_matched, cv::Rect &templ_rect, cv::Rect &center_rect); //draw 2 rectangle on the img for video and img saving
 
 
-//global variables setting up template for opening space
 // Python interpreter
 PyObject *pName, *pMod, *pDict;
 PyObject *pFunc, *pArgs, *pVal;
 int main(int argc, char **argv) {
+    // Alt
+    int altitude = 10;
     // Python interpreter
 	Py_Initialize();
     PyRun_SimpleString("import sys");
-    PyRun_SimpleString("sys.path.append('/home/nvidia/Visual_Code_Workspace/Collision_Avoidance/src')");
+    PyRun_SimpleString("sys.path.append('/home/nvidia/Visual_Code_Workspace/Collision_Avoidance/src')"); // path of the PyMovement.py
     pName = PyUnicode_FromString("PyMovement");
     pMod = PyImport_Import(pName);
     if (pMod == NULL) {
@@ -53,28 +55,27 @@ int main(int argc, char **argv) {
     PyObject_CallObject(pFunc, pArgs);  //Call the connection function from the Python Script
 
     //set Home Location
-    pFunc = PyDict_GetItemString(pDict, "setLocation");  //PyObject to call the connection function
+    pFunc = PyDict_GetItemString(pDict, "setLocation");  //PyObject to call the setLocation function
     PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
 
 	//Arm_and_Takeoff
 	pFunc = PyDict_GetItemString(pDict, "arm_and_takeoff");
 	pArgs = PyTuple_New(1);             //Create a PyObject for the arguments
-	pVal = PyFloat_FromDouble(10); //Set the value of pVal to the altitude
+	pVal = PyFloat_FromDouble(altitude); //Set the value of pVal to the altitude
 	PyTuple_SetItem(pArgs, 0, pVal);   //Set the first parameter to the altitude
 	PyObject_CallObject(pFunc, pArgs);
-    pArgs = NULL;
+    pArgs = NULL; // reset the arguments for calling next function
 
     //set Tartget location
-    pFunc = PyDict_GetItemString(pDict, "setTargetLoc");  //PyObject to call the connection function
+    pFunc = PyDict_GetItemString(pDict, "setTargetLoc");  //PyObject to call the setTargetLoc function
     PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
 
     //go to Tartget location
-    // pFunc = PyDict_GetItemString(pDict, "goToTargetLoc");  //PyObject to call the connection function
+    // pFunc = PyDict_GetItemString(pDict, "goToTargetLoc");  //PyObject to call the goToTargetLoc function
     // PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
     bool is_moving_to_target = false; // moving flag
 
-    // exit(1);
-    // while(1);
+
     // imtermediate img and point
     cv::Rect templ_rect;
     cv::Rect center_rect;
@@ -119,8 +120,8 @@ int main(int argc, char **argv) {
 
     // Prepare new image size to retrieve half-resolution images
     Resolution image_size = zed.getCameraInformation().camera_resolution;
-    int new_width = image_size.width ;
-    int new_height = image_size.height ;
+    int new_width = image_size.width; // used to be image_size.width / 2, I dont delete this line since lots of place use new_width
+    int new_height = image_size.height; // same reason
 
     Resolution new_image_size(new_width, new_height);
 
@@ -132,8 +133,8 @@ int main(int argc, char **argv) {
     cv::cuda::GpuMat depth_image_ocv_gpu = slMat2cvMatGPU(depth_image_zed_gpu); // create an opencv GPU reference of the sl::Mat
     cv::Mat depth_image_ocv; // cpu opencv mat for display purposes
     Mat point_cloud;
-    int img_counter = 0;
     int fps = 0;
+    // for saving img
     string final_real_img;
     string final_binary_img;
 
@@ -145,7 +146,6 @@ int main(int argc, char **argv) {
     timeinfo = localtime(&rawtime);
     strftime(buffer,sizeof(buffer),"%d-%m-%Y %H:%M:%S",timeinfo);
     std::string str(buffer);
-
     cv::VideoWriter video_real("/home/nvidia/Desktop/video_real/real " + str + ".avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 30, cv::Size(new_width, new_height));
     cv::VideoWriter video_binary("/home/nvidia/Desktop/video_binary/binary " + str + ".avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 30, cv::Size(new_width, new_height));
     cv::Mat img_real_for_video;
@@ -156,7 +156,6 @@ int main(int argc, char **argv) {
     while (true) {
         if (zed.grab(runtime_parameters) == ERROR_CODE::SUCCESS) {
             zed.retrieveImage(image_zed, VIEW::LEFT, MEM::CPU, new_image_size);
-            // image_ocv_copy = image_ocv.clone();
             zed.retrieveImage(depth_image_zed_gpu, VIEW::DEPTH, MEM::GPU, new_image_size);
             depth_image_ocv_gpu.download(depth_image_ocv);
             cv::threshold(depth_image_ocv, img_binary, 5, 255, cv::THRESH_BINARY); //convert depth img to binary
@@ -251,24 +250,6 @@ cv::cuda::GpuMat slMat2cvMatGPU(Mat& input) {
     return cv::cuda::GpuMat(input.getHeight(), input.getWidth(), getOCVtype(input.getDataType()), input.getPtr<sl::uchar1>(MEM::GPU), input.getStepBytes(sl::MEM::GPU));
 }
 
-// Function that save Gray Scale Image
-void saveGrayScaleImage(Camera& zed, std::string filename) {
-    sl::Mat image_sbs;
-    zed.retrieveImage(image_sbs, VIEW::DEPTH);
-
-    auto state = image_sbs.write(filename.c_str());
-
-    if (state == sl::ERROR_CODE::SUCCESS)
-        std::cout << "Gray Scale image has been save under " << filename << std::endl;
-    else
-        std::cout << "Failed to save image... Please check that you have permissions to write at this location (" << filename << "). Re-run the sample with administrator rights under windows" << std::endl;
-}
-
-//Function that do nothing when trackbars change
-static void empty( int, void* ){
-
-}
-
 
 bool finding_best_space(cv::Mat &img_binary, cv::Rect &templ_rect, cv::Rect &center_Rect) {
     cv::Mat img_bianry_cropped; // cropped img to only detect horizontal regions;
@@ -276,17 +257,17 @@ bool finding_best_space(cv::Mat &img_binary, cv::Rect &templ_rect, cv::Rect &cen
     int frame_h = img_binary.rows;
     int templ_w = 200; // dimension of the drone at 5 m with 50% bigger 133 / 100 * 150
     int templ_h = 83; // dimension of the drone at 5 m with 50% bigger 55 / 100 * 150
-    cv::Mat img_result_templ_matching;
-    cv::Mat img_binary_formatted;
-    cv::Mat templ(templ_h, templ_w, CV_8U, cv::Scalar(0, 0, 0));
-    cv::Point center_frame_tf;
+    cv::Mat img_result_templ_matching; // output of matchTemplate function, this is NOT an img, it's an matrix that store the matching result for every pixel, the smaller the number in this matrix the more match
+    cv::Mat img_binary_formatted; // binary img need to be formatted to be used for template matching algothsm
+    cv::Mat templ(templ_h, templ_w, CV_8U, cv::Scalar(0, 0, 0)); // create a template that all black
+    cv::Point center_frame_tf; // the top left point of the frame in the center
     center_frame_tf.x = (frame_w / 2) - (templ_w / 2);
     center_frame_tf.y = (frame_h / 2) - (templ_h / 2);
     center_Rect = cv::Rect(center_frame_tf.x, center_frame_tf.y, templ_w, templ_h);
     cv::Point cropped_frame_tf;
     vector<cv::Point> space_loc_tf;
 
-    cv::cvtColor(img_binary, img_binary_formatted, cv::COLOR_BGR2GRAY);
+    cv::cvtColor(img_binary, img_binary_formatted, cv::COLOR_BGR2GRAY); // format binary img for matchTemplate function
     img_bianry_cropped = img_binary_formatted(cv::Rect(0, center_frame_tf.y, frame_w, templ_h)); // create a frame fit the templ, so that it can only slide left and right
     cropped_frame_tf.x = 0;
     cropped_frame_tf.y = center_frame_tf.y;
@@ -414,8 +395,6 @@ bool check_rect_matched(cv::Rect templ_rect, cv::Rect center_rect) {
 }
 
 
-// this function will masked every 10% of the fps frame by a bitwise_or 
-// then it will return true if it complete
 // bool is_masked_img() {
 //     if(frame_counter_for_space < (fps / 10)) {
 //         frame_counter_for_space++;
