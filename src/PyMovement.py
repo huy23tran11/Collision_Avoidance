@@ -3,11 +3,13 @@ from dronekit import connect, VehicleMode, LocationGlobal, LocationGlobalRelativ
 from pymavlink import mavutil # Needed for command message definitions
 import time
 import math
+# export DISPLAY=:0.0 using this in terminal for SSH 
+# sudo chmod 666 /dev/ttyACM0  using this in terminal for permission
 
-FLIGHT_ALT = 5
-droneSpeed = 1
-connection_string = 'tcp:192.168.86.182:5763'
-# connection_string = '/dev/ttyACM0, 57600'
+FLIGHT_ALT = 3
+droneSpeed = 0.5
+connection_string = 'tcp:192.168.86.182:5763' # simulation
+# connection_string = '/dev/ttyACM0, 57600' # pixhawk
 aTargetAltitude = FLIGHT_ALT
 ACTION = "NONE"
 STATUS = "Initializing Program"
@@ -267,8 +269,18 @@ def setLocation():
     homeLocation = vehicle.location.global_relative_frame
     print("Home Location: ", homeLocation.lat, " (lat), ", homeLocation.lon, " (long)")
 
+def killSwitch():
+    global vehicle
+    return  vehicle.channels['7']
+
+#Testing 
 # connectionFunc()
 # setLocation()
+# while True:
+    # print "%s"  % vehicle.channels['7']
+    # time.sleep(1)
+    # 
+
 # arm_and_takeoff(5)
 # setTargetLoc()
 # goToTargetLoc()

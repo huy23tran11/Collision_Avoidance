@@ -32,7 +32,7 @@ void put_text(cv::Mat img, bool is_space, bool is_matched, cv::Rect &templ_rect,
 
 
 // Python interpreter
-PyObject *pName, *pMod, *pDict;
+PyObject *pName, *pMod, *pDict, *result;
 PyObject *pFunc, *pArgs, *pVal;
 int main(int argc, char **argv) {
     // Python interpreter
@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
     pFunc = PyDict_GetItemString(pDict, "connectionFunc");  //PyObject to call the connection function
     PyObject_CallObject(pFunc, pArgs);  //Call the connection function from the Python Script
 
-    //set Home Location
+    // set Home Location
     pFunc = PyDict_GetItemString(pDict, "setLocation");  //PyObject to call the setLocation function
     PyObject_CallObject(pFunc, pArgs);  //Call the function from the Python Script
 
@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
     // imtermediate img and point
     cv::Rect templ_rect;
     cv::Rect center_rect;
-    cv::Mat img_binary; // convert to binary to easily prrcessed
+    cv::Mat img_binary; // convert to binary to easily process
 
     // color
     cv::Scalar red = cv::Scalar(0, 0, 256);
@@ -140,8 +140,8 @@ int main(int argc, char **argv) {
     timeinfo = localtime(&rawtime);
     strftime(buffer,sizeof(buffer),"%d-%m-%Y %H:%M:%S",timeinfo);
     std::string str(buffer);
-    cv::VideoWriter video_real("/home/nvidia/Desktop/video_real/real " + str + ".avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 30, cv::Size(new_width, new_height));
-    cv::VideoWriter video_binary("/home/nvidia/Desktop/video_binary/binary " + str + ".avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 30, cv::Size(new_width, new_height));
+    cv::VideoWriter video_real("/home/nvidia/Desktop/video_real/real " + str + ".avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 30, cv::Size(new_width, new_height)); // fps 30 => maybe it moves fast
+    cv::VideoWriter video_binary("/home/nvidia/Desktop/video_binary/binary " + str + ".avi", cv::VideoWriter::fourcc('M', 'J', 'P', 'G'), 30, cv::Size(new_width, new_height)); // fps 30 => maybe it moves fast
     cv::Mat img_real_for_video;
     cv::Mat img_binary_for_video;
     
@@ -175,7 +175,7 @@ int main(int argc, char **argv) {
             // std::string str(buffer);
             // final_real_img = "/home/nvidia/Desktop/img_real/real_img_" + str + ".jpg";
             // final_binary_img = "/home/nvidia/Desktop/img_binary/binary_img_" + str + ".jpg";
-            // if(frame_counter == 0) {
+            // if(frame_counter == 0) { // take pics 1 pic / second, depends on frame rate if frame rate is reseted means 1s
             //     cv::imwrite(final_real_img, image_ocv);
             //     cv::imwrite(final_binary_img, img_binary);
             // }
@@ -249,7 +249,7 @@ bool finding_best_space(cv::Mat &img_binary, cv::Rect &templ_rect, cv::Rect &cen
     cv::Mat img_bianry_cropped; // cropped img to only detect horizontal regions;
     int frame_w = img_binary.cols;
     int frame_h = img_binary.rows;
-    int templ_w = 200; // dimension of the drone at 5 m with 50% bigger 133 / 100 * 150
+    int templ_w = 200; // dimension of the drone at 5 m with 50% bigger 133 / 100 * 150, recommend 300 for safer avoiding
     int templ_h = 83; // dimension of the drone at 5 m with 50% bigger 55 / 100 * 150
     cv::Mat img_result_templ_matching; // output of matchTemplate function, this is NOT an img, it's an matrix that store the matching result for every pixel, the smaller the number in this matrix the more match
     cv::Mat img_binary_formatted; // binary img need to be formatted to be used for template matching algothsm
