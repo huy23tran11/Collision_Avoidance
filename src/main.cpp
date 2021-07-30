@@ -178,7 +178,7 @@ int main(int argc, char **argv) {
             std::string str(buffer);
             final_real_img = "/home/nvidia/Desktop/img_real/real_img_" + str + ".jpg";
             final_binary_img = "/home/nvidia/Desktop/img_binary/binary_img_" + str + ".jpg";
-            final_depth_img = "/home/nvidia/Desktop/img_depth/binary_depth_" + str + ".jpg";
+            final_depth_img = "/home/nvidia/Desktop/img_depth/depth_img_" + str + ".jpg";
             if(frame_counter == 0) { // take pics 1 pic / second, depends on frame rate if frame rate is reseted means 1s
                 cv::imwrite(final_real_img, image_ocv);
                 cv::imwrite(final_binary_img, img_binary);
