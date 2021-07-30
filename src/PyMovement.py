@@ -8,8 +8,8 @@ import math
 
 FLIGHT_ALT = 3
 droneSpeed = 0.5
-connection_string = 'tcp:192.168.86.182:5763' # simulation
-# connection_string = '/dev/ttyACM0, 57600' # pixhawk
+# connection_string = 'tcp:192.168.86.182:5763' # simulation
+connection_string = '/dev/ttyACM0, 57600' # pixhawk
 aTargetAltitude = FLIGHT_ALT
 ACTION = "NONE"
 STATUS = "Initializing Program"

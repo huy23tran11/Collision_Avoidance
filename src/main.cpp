@@ -131,6 +131,7 @@ int main(int argc, char **argv) {
     // for saving img
     string final_real_img;
     string final_binary_img;
+    string final_depth_img;
 
     //video capture
     time_t rawtime;
@@ -160,6 +161,8 @@ int main(int argc, char **argv) {
             cv::rectangle(image_ocv, center_rect.tl(), center_rect.br(), red, 2); // real img
             cv::rectangle(img_binary, templ_rect.tl(), templ_rect.br(), blue, 2); // binary img 
             cv::rectangle(img_binary, center_rect.tl(), center_rect.br(), red, 2); // binary img
+            cv::rectangle(depth_image_ocv, templ_rect.tl(), templ_rect.br(), blue, 2); // depth img 
+            cv::rectangle(depth_image_ocv, center_rect.tl(), center_rect.br(), red, 2); // depth img
 
             is_matched = check_rect_matched(templ_rect, center_rect);
 
@@ -169,16 +172,18 @@ int main(int argc, char **argv) {
             manuver(is_space, is_matched, templ_rect, center_rect, is_moving_to_target); // guidance on binary img
 
             // save img
-            // time (&rawtime);
-            // timeinfo = localtime(&rawtime);
-            // strftime(buffer,sizeof(buffer),"%d-%m-%Y %H:%M:%S",timeinfo);
-            // std::string str(buffer);
-            // final_real_img = "/home/nvidia/Desktop/img_real/real_img_" + str + ".jpg";
-            // final_binary_img = "/home/nvidia/Desktop/img_binary/binary_img_" + str + ".jpg";
-            // if(frame_counter == 0) { // take pics 1 pic / second, depends on frame rate if frame rate is reseted means 1s
-            //     cv::imwrite(final_real_img, image_ocv);
-            //     cv::imwrite(final_binary_img, img_binary);
-            // }
+            time (&rawtime);
+            timeinfo = localtime(&rawtime);
+            strftime(buffer,sizeof(buffer),"%d-%m-%Y %H:%M:%S",timeinfo);
+            std::string str(buffer);
+            final_real_img = "/home/nvidia/Desktop/img_real/real_img_" + str + ".jpg";
+            final_binary_img = "/home/nvidia/Desktop/img_binary/binary_img_" + str + ".jpg";
+            final_depth_img = "/home/nvidia/Desktop/img_depth/binary_depth_" + str + ".jpg";
+            if(frame_counter == 0) { // take pics 1 pic / second, depends on frame rate if frame rate is reseted means 1s
+                cv::imwrite(final_real_img, image_ocv);
+                cv::imwrite(final_binary_img, img_binary);
+                cv::imwrite(final_depth_img, depth_image_ocv);
+            }
 
             // FPS counter:
             fps_counter(fps, frame_counter, final_time, initial_time);
@@ -187,14 +192,15 @@ int main(int argc, char **argv) {
             cv::putText(img_binary, fps_str, cv::Point(20, 20), cv::FONT_HERSHEY_PLAIN, 1, red, 1);
 
             //show img
-            cv::imshow("Real", image_ocv);
-            cv::imshow("Depth", img_binary);
+            // cv::imshow("Real", image_ocv);
+            // cv::imshow("Depth", img_binary);
+            // cv::imshow("Depth", depth_image_ocv);
 
             // save video
-            // cv::cvtColor(image_ocv, img_real_for_video, cv::COLOR_RGB2BGR);
-            // cv::cvtColor(img_binary, img_binary_for_video, cv::COLOR_RGB2BGR);
-            // video_real.write(img_real_for_video);
-            // video_binary.write(img_binary_for_video);
+            cv::cvtColor(image_ocv, img_real_for_video, cv::COLOR_RGB2BGR);
+            cv::cvtColor(img_binary, img_binary_for_video, cv::COLOR_RGB2BGR);
+            video_real.write(img_real_for_video);
+            video_binary.write(img_binary_for_video);
         }
     key = cv::waitKey(1);
     if (key == 'q') {break;}
